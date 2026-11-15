@@ -600,6 +600,11 @@ block resolve_two_nouns(rq1, rq2)
         change i to i + 1
     if b is 0
         change b to n
+    // ALL in the first slot (summon.takeall): the sweep binds per item, so
+    // only the target is resolved here. Folds away without the granule.
+    if any_allwords is 1
+        if all_in(1, b) is 1
+            return bind_all_second(b + 1, n)
     change noun to match_phrase(1, b, 0)
     if parse_fault is not 0
         return 1

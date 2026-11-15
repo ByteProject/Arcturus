@@ -3107,7 +3107,7 @@ A bare declaration names an action with no verb attached:
 
 ```
 action ritual
-action take_all, drop_all
+action take_all, drop_all, put_all, insert_all
 ```
 
 The name joins the ordinary action numbering, so everything that works
@@ -3566,7 +3566,7 @@ everywhere and is byte-identical to the classless build. Worked example:
 
 Multi and all. Deliberately NOT core: both ship as granules, so a game that
 wants them summons them and one that does not pays nothing. `summon.takeall`
-gives TAKE ALL, DROP ALL, and TAKE ALL FROM (chapter 22).
+gives TAKE ALL, DROP ALL, TAKE ALL FROM, and PUT ALL ON or IN (chapter 22).
 `summon.plurals` gives group words (`plural coins` on each coin, so "take
 coins" sweeps them) and THEM for the last group; noun lists ("take lamp and
 box") are core (this chapter). Every swept item is a full turn, the chaining
@@ -5473,8 +5473,8 @@ parser normally refuses, through the `reach_unscoped` parser seam the granule
 overrides. There is no separate release build to strip them: not summoning the
 granule leaves them out entirely, which is the exclusion.
 
-`summon.takeall`. TAKE ALL, DROP ALL, and TAKE ALL FROM <container>,
-catalogued in chapter 22. Every swept item is a full turn (daemons and the clock move
+`summon.takeall`. TAKE ALL, DROP ALL, TAKE ALL FROM <container>, and
+PUT ALL ON or IN <holder>, catalogued in chapter 22. Every swept item is a full turn (daemons and the clock move
 per item, the same rule as a chained line; a deliberate departure from
 Inform's one-turn ALL), undo takes the whole sweep back, and an empty sweep
 refuses so a chain stops. The core deliberately omits ALL; the granule's
@@ -6553,8 +6553,8 @@ layered room mood.
 summon.takeall
 ```
 
-TAKE ALL, DROP ALL, and TAKE ALL FROM <container>. The core deliberately
-omits ALL (it flattens scenes into transactional loot runs), so it is a
+TAKE ALL, DROP ALL, TAKE ALL FROM <container>, and PUT ALL ON or IN
+<holder>. The core deliberately omits ALL (it flattens scenes into transactional loot runs), so it is a
 granule: a game that wants the convenience summons it, and a game that does
 not pays nothing (the parser's hand-off folds away without the summon).
 
@@ -6572,8 +6572,21 @@ wooden box: You take the wooden box with you.
 idol: The idol is welded to its pedestal.
 ```
 
-THE SWEEP IS HOOKABLE: the granule declares two verbless actions,
-`take_all` and `drop_all` (chapter 12), and dispatches them through the
+PUT ALL ON or IN a holder sweeps what the player carries: everything not
+worn, except the holder itself and anything the holder sits in. Each item
+is an ordinary put or insert, so the holder's `item_cap`, the carry limit,
+and every handler apply per item. A holder that cannot take things, or a
+shut container, refuses the whole sweep once ("The tin is shut."):
+
+```
+>put all on the tray
+cup: You put the cup on the tray.
+pea: You put the pea on the tray.
+```
+
+THE SWEEP IS HOOKABLE: the granule declares four verbless actions,
+`take_all`, `drop_all`, `put_all` and `insert_all` (chapter 12), and
+dispatches them through the
 ordinary pipeline before sweeping. A story intercepts the sweep the same
 way it intercepts anything:
 
@@ -6583,20 +6596,23 @@ on drop_all when here is shrine
 ```
 
 The chain runs as always: for TAKE ALL FROM the source is the bound
-`noun`, so the container's own `on take_all` answers first; then the
+`noun`, so the container's own `on take_all` answers first, and for PUT
+ALL ON or IN the holder is the bound `noun` in the same way, so a tray's
+own `on put_all` answers first; then the
 room, then the free rules; the granule's default handlers at the end of
 the chain perform the sweep. `continue` defers to them, so a handler can
 comment and still let the sweep run. An intercepted sweep costs its turn
 and ends a chained line: the interception was the outcome. Per-item
 control needs no hook at all, because each swept item runs its own full
-`on take` or `on drop`.
+`on take`, `on drop`, `on put` or `on insert`.
 
 Every swept item is a FULL TURN: daemons fire and the clock moves per item,
 exactly as if the takes had been typed one by one. This is a deliberate
 departure from Inform, where ALL costs one turn; in Arcturus doing three
 things costs three turns, the same rule a chained line follows (chapter 14). UNDO takes back the whole sweep, because the sweep is one typed command
 and undo peels typed commands. An empty sweep, and ALL with any other verb
-("eat all"), refuse, so a chained line stops there honestly.
+("eat all", "give all to the cook"), refuse ("One thing at a time."), so
+a chained line stops there honestly.
 
 The granule speaks every shipped language. Its words live inside it under
 `when language` groups (English ALL and EVERYTHING with the filler FROM;

@@ -714,6 +714,12 @@ block try_line(line, n)
                     change list_end to s1hi
                     return 1
             change p to p + 1
+    // ALL in the first slot of a two-slot line (summon.takeall): the tabled
+    // twin of the resolvers' rule; only the target binds here.
+    if any_allwords is 1
+        if slots is 2
+            if all_in(s1lo, s1hi) is 1
+                return bind_all_second(s2lo, s2hi)
     if s1hi > s1lo
         let pl = 0
         if slots is 1
@@ -1279,15 +1285,33 @@ block match_first_phrase()
 // the takeall granule is summoned; without it the any_allwords guard folds
 // and dead-code elimination drops this block.
 block all_typed()
-    let n = word_count
-    let i = 1
-    while i < n
+    return all_in(1, word_count)
+
+// Does the word range [lo, hi) hold an all-word? The two-noun resolvers ask
+// it of their first slot, so PUT ALL ON THE TRAY binds the tray and hands
+// the sweep over instead of faulting on "all" as a missing object.
+block all_in(lo, hi)
+    let i = lo
+    while i < hi
         let d = word_dict(i)
         if d is not nothing
             if peek_byte(d + 6) is 1
                 return 1
         change i to i + 1
     return 0
+
+// The first slot of a two-noun command is ALL (summon.takeall): leave the
+// noun empty for the sweep and bind only the second, faulting honestly when
+// the target is named but not here. Shared by every pack's resolve_two_nouns.
+// The target's words are [lo, hi); an empty range leaves no target, and
+// the sweep's expander refuses ALL without one.
+block bind_all_second(lo, hi)
+    if lo < hi
+        change second to match_phrase(lo, hi, 0)
+        if parse_fault is 0
+            if second is nothing
+                change parse_fault to noun_fault(lo, hi)
+    return 1
 
 // Print the question naming the tied candidates: "Which do you mean, the
 // gold coin or the silver coin?" The framing and the connectors come from

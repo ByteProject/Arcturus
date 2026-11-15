@@ -3,7 +3,8 @@
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// TAKE ALL, DROP ALL, and TAKE ALL FROM <container>: summon it with
+// TAKE ALL, DROP ALL, TAKE ALL FROM <container>, and PUT ALL ON or IN
+// <holder>: summon it with
 // `summon.takeall` (docs/01 chapter 22). The core deliberately omits ALL, so a game only
 // pays for it when it asks; without the summon, every hook below folds away
 // to nothing (the any_allwords guard).
@@ -41,8 +42,9 @@ when language "spanish"
     all "todo"
     noise "de"
 
-// The sweep is an ACTION PAIR on the ordinary pipeline (docs/01 chapter
-// 22): take_all and drop_all are declared verbless below, and run_all
+// The sweeps are ACTIONS on the ordinary pipeline (docs/01 chapter
+// 22): take_all, drop_all, put_all and insert_all are declared verbless
+// below, and run_all
 // dispatches them through the standard chain, noun first (TAKE ALL FROM
 // binds the source there), then the room, then the free rules. A story
 // hooks the sweep like any action:
@@ -53,23 +55,33 @@ when language "spanish"
 // and `continue` defers to the default sweep handlers at the end of
 // this file. An intercepted sweep still costs its turn and ends a
 // chained line: the interception was the outcome.
-action take_all, drop_all
+action take_all, drop_all, put_all, insert_all
 
 // The expander the turn loop hands an all-command to (the run_all stub in
-// loop.prelude). Any verb but take and drop with "all", and an empty
-// sweep, refuse, so a chained line stops honestly.
+// loop.prelude). Any verb but take, drop, put and insert with "all" (or
+// a put with no target), and an empty sweep, refuse, so a chained line
+// stops honestly.
 block run_all(act)
+    let sweep = 0
     if act is action_id("take")
-        change all_ran to 0
-        dispatch(action_id("take_all"))
-        if all_ran is 0
-            change refused to 1
-            fire_turn
-            tick
-        return 0
+        change sweep to action_id("take_all")
     if act is action_id("drop")
+        change sweep to action_id("drop_all")
+    // PUT ALL ON or IN a holder: the resolver bound the target as the
+    // second noun (bind_all_second); with no target there is no sweep. The
+    // sweep event takes the target as its NOUN, as TAKE ALL FROM takes its
+    // source, so the holder's own `on put_all` answers first in the chain.
+    if second is not nothing
+        if act is action_id("put")
+            change sweep to action_id("put_all")
+        if act is action_id("insert")
+            change sweep to action_id("insert_all")
+        if sweep is not 0
+            change noun to second
+            change second to nothing
+    if sweep is not 0
         change all_ran to 0
-        dispatch(action_id("drop_all"))
+        dispatch(sweep)
         if all_ran is 0
             change refused to 1
             fire_turn
@@ -193,6 +205,55 @@ block all_drop()
         tick
     return 0
 
+// PUT ALL ON or IN the target: everything carried and not worn, except the
+// target itself and anything holding it, each a full put or insert of its
+// own (the item's and the holder's handlers, the gates, item_cap and the
+// carry tolls all apply). A target that can hold nothing, or a shut
+// container, refuses the whole sweep once rather than item by item.
+block all_put(act)
+    let target = noun
+    // The refusals below speak of the second noun, as a typed put does.
+    change second to target
+    if act is action_id("insert")
+        if target is not container
+            change refused to 1
+            msg_cant_put
+            fire_turn
+            tick
+            return 0
+    if target is not supporter
+        if target is not container
+            change refused to 1
+            msg_cant_put
+            fire_turn
+            tick
+            return 0
+    if target is container
+        if target is not open
+            change refused to 1
+            msg_closed
+            fire_turn
+            tick
+            return 0
+    let n = object_count
+    let count = 0
+    let obj = 1
+    while obj <= n
+        if obj is in player
+            if obj is not worn
+                if obj is not target
+                    if within(target, obj) is 0
+                        change count to count + 1
+                        change second to target
+                        sweep_one(obj, act)
+        change obj to obj + 1
+    if count is 0
+        change refused to 1
+        msg_empty_handed
+        fire_turn
+        tick
+    return 0
+
 // The default sweep handlers: the end of the dispatch chain. A story
 // handler that fired earlier (noun, room, or an earlier free rule) has
 // already won; `continue` from there lands here and the sweep proceeds.
@@ -206,3 +267,11 @@ on take_all
 on drop_all
     change all_ran to 1
     all_drop
+
+on put_all
+    change all_ran to 1
+    all_put(action_id("put"))
+
+on insert_all
+    change all_ran to 1
+    all_put(action_id("insert"))

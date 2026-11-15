@@ -287,6 +287,18 @@ block resolve_objects()
                     if word_count < 2
                         change incomplete to 1
                         return 1
+                    change line_act to action_id("put")
+                    // dict_entry, not a plain string: a bare literal is a
+                    // pooled STRING address and the compare would be
+                    // silently false (the latent bug of 2026-09-13,
+                    // caught by auraes's dictionary question).
+                    if dw is dict_entry("darin") or dw is dict_entry("drin")
+                        change line_act to action_id("insert")
+                    // LEG ALLES DARAUF (summon.takeall): the da-word is the
+                    // target, ALL the sweep; folds away without the granule.
+                    if any_allwords is 1
+                        if all_in(1, word_count) is 1
+                            return 1
                     change noun to match_phrase(1, word_count, 0)
                     if parse_fault is not 0
                         return 1
@@ -301,13 +313,6 @@ block resolve_objects()
                     if noun is nothing
                         change parse_fault to noun_fault(1, word_count)
                         return 1
-                    change line_act to action_id("put")
-                    // dict_entry, not a plain string: a bare literal is a
-                    // pooled STRING address and the compare would be
-                    // silently false (the latent bug of 2026-09-13,
-                    // caught by auraes's dictionary question).
-                    if dw is dict_entry("darin") or dw is dict_entry("drin")
-                        change line_act to action_id("insert")
                     return 1
                 let tbl = peek_word(d + 7, 0)
                 grammar_match(tbl)
@@ -547,6 +552,10 @@ block resolve_two_nouns(rq1, rq2)
     // line is ONE noun, no split, and the da-word already satisfied the
     // two-noun requirement, so only a missing FIRST noun still asks.
     if second is not nothing
+        // LEG ALLES DARAUF: the da-word is the target, ALL the sweep.
+        if any_allwords is 1
+            if all_in(1, n) is 1
+                return 1
         change noun to match_phrase(1, n, 0)
         if parse_fault is not 0
             return 1
@@ -595,6 +604,11 @@ block resolve_two_nouns(rq1, rq2)
                 change sp to sp + 1
     if b is 0
         change b to n
+    // ALL in the first slot (summon.takeall): the sweep binds per item, so
+    // only the target is resolved here. Folds away without the granule.
+    if any_allwords is 1
+        if all_in(1, b) is 1
+            return bind_all_second(b + 1, n)
     change noun to match_phrase(1, b, 0)
     if parse_fault is not 0
         // The first slot is ambiguous although words follow the

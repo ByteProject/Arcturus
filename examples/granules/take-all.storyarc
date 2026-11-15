@@ -5,8 +5,8 @@
 //
 // THE COLLECTOR'S STUDY. A small showcase for the takeall granule
 // (summon.takeall, docs/01 chapter 22): TAKE ALL sweeps the room, DROP ALL empties your
-// hands but keeps what you wear, and TAKE ALL FROM THE CABINET raids one
-// container. Every swept item is a full turn: watch the move counter in the
+// hands but keeps what you wear, TAKE ALL FROM THE CABINET raids one
+// container, and PUT ALL IN THE CABINET puts it all back. Every swept item is a full turn: watch the move counter in the
 // status bar climb once per item, and the metronome tick between them; that
 // is the deliberate rule (doing three things costs three turns), where Inform
 // charges one. The welded astrolabe shows a custom refusal inside a sweep:
@@ -15,7 +15,8 @@
 //   arcc examples/granules/take-all.storyarc -o study.z5
 //   frotz study.z5
 //
-// Try: TAKE ALL. DROP ALL. OPEN CABINET. TAKE ALL FROM CABINET. EAT ALL.
+// Try: TAKE ALL. DROP ALL. OPEN CABINET. TAKE ALL FROM CABINET.
+// PUT ALL IN CABINET. EAT ALL.
 // And TAKE ALL AND GO NORTH chains: the sweep runs, then the move.
 
 summon.takeall

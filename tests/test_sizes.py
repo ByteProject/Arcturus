@@ -274,7 +274,7 @@ CEILINGS = {
     "granules/extended-verbs.storyarc": 22808,  # 2026-11-15 repriced (+24): a thing put on or in itself is refused before any handler
     "granules/infocom-interrogation.storyarc": 22448,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
     "granules/quotes.storyarc": 19256,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "granules/take-all.storyarc": 22080,  # 2026-11-15 repriced (+40): a thing put on or in itself is refused before any handler
+    "granules/take-all.storyarc": 22464,  # 2026-11-15 repriced (+384): PUT ALL ON or IN a holder sweeps, and an ALL in a two-noun command reaches the sweep
     "granules/plurals.storyarc": 20168,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
     "granules/statusline.storyarc": 19228,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
     "granules/verbose-exits.storyarc": 19168,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
