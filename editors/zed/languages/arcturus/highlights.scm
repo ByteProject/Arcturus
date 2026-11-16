@@ -45,7 +45,8 @@
     "name" "desc" "intro" "appearance" "capacity" "unseal_with" "article"
     "indefinite" "tag" "arc_image" "title" "headline" "author" "copyright"
     "release" "serial" "UUID" "scoring" "banner" "once" "idle" "about"
-    "order" "at" "percent" "points" "meta" "timers" "weight" "item_cap"))
+    "order" "at" "percent" "points" "meta" "timers" "weight" "item_cap"
+    "untouchable" "adjacent"))
 
 ; Builtin references (docs/01 chapter 2).
 ((identifier) @variable.special
@@ -61,7 +62,8 @@
 ; The curated author-facing library services (the documented surface).
 ((identifier) @function
   (#any-of? @function
-    "teleport" "gain" "convey" "perform" "swap" "worn_count" "list_worn"
+    "teleport" "gain" "convey" "perform" "swap" "make_untouchable"
+    "make_adjacent" "worn_count" "list_worn"
     "visible" "reachable" "calculate" "entry" "last" "dice" "position"
     "quote_catalog" "parent_of" "name_contents" "listable_count"
     "press_any_key" "action_id" "clear_screen" "screen_width"

@@ -1028,6 +1028,15 @@ def _emit_property_table(world, layout, name, eff, topic_sites=None) -> None:
         if pname == "spans":
             _emit_spans(layout, pnum, decl)
             continue
+        # Place-by-place scope (docs/01 chapter 7): `untouchable from` and
+        # `adjacent to` are arrays of room or object numbers, the spans
+        # shape; an empty run-time slot (sema's, for make_untouchable) is one
+        # entry holding nothing.
+        if pname in ("untouchable", "adjacent"):
+            _emit_spans(layout, pnum,
+                        [v.ident if isinstance(v, ast.Name) else None
+                         for v in decl.values])
+            continue
         # The engine's route properties (summon.npcengine): patrol and
         # territory are arrays of room object numbers, the spans shape
         # exactly. Only when a roster exists; otherwise these names are

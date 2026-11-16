@@ -71,6 +71,7 @@ CURATED = {
     "any_duals": "any_duals(): 1 when a verb word doubles as a noun.",
     "any_thing_duals": "any_thing_duals(): 1 when a thing word doubles as a verb.",
     "any_exposed": "any_exposed(): 1 when a thing is `exposed`.",
+    "any_views": "any_views(): 1 when anything is `untouchable from` or `adjacent to` a place.",
     "any_indefinites": "any_indefinites(): 1 when an object sets `indefinite`.",
     "any_owner_index": "any_owner_index(): 1 when the word-to-owners index is built.",
     "any_pathfinding": "any_pathfinding(): 1 when the pathfinding granule is summoned.",

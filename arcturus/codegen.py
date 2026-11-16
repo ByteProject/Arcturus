@@ -1790,7 +1790,7 @@ def _value_read_blocks(world) -> set:
         walk(r)
     # The compiler's own storing calls to named blocks (lower.py):
     used |= {"cosmos_perform", "cosmos_perform_dir", "cosmos_perform_running",
-             "cosmos_exit_prop"}
+             "cosmos_exit_prop", "untouchable_first", "adjacent_first"}
     return used
 
 

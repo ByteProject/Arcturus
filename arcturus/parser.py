@@ -652,6 +652,27 @@ class Parser:
                 name, ast.PROP_VALUE, values=values, line=tok.line,
                 triggers=triggers, adjectives=adjectives,
             )
+        if name in ("untouchable", "adjacent"):
+            # Place-by-place scope (docs/01 chapter 7): `untouchable from
+            # balcony, tower` is seen from there and not touched; `adjacent
+            # to hatch` is seen and touched from there. The connector word
+            # is required, so the line always says where from: a thing out
+            # of reach everywhere is `beyond`, a different feature.
+            conn = "from" if name == "untouchable" else "to"
+            if not self._at_word(conn):
+                hint = (" (a thing out of reach everywhere is `beyond`)"
+                        if name == "untouchable" else "")
+                raise self._error(
+                    f"`{name}` names the places it is {'seen' if name == 'untouchable' else 'reached'} "
+                    f"from: `{name} {conn} balcony`, rooms or objects, "
+                    f"comma-separated{hint}")
+            self.advance()
+            values = [self.parse_expr()]
+            while self.check_op(","):
+                self.advance()
+                values.append(self.parse_expr())
+            self.expect_newline()
+            return ast.PropertyDecl(name, ast.PROP_VALUE, values=values, line=tok.line)
         if self.check(T.NEWLINE):
             self.advance()
             return ast.PropertyDecl(name, ast.PROP_BOOL, line=tok.line)

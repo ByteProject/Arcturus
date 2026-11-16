@@ -1182,6 +1182,8 @@ feature, which declares a global boolean, not an object attribute.)
 | <a id="ix-intro"></a>`intro` | text | An object's initial appearance in a room, shown as its own paragraph while the object is untouched (`moved` clear). |
 | <a id="ix-appearance"></a>`appearance` | text | The paragraph the object ALWAYS owns in a room description, replacing its listing line and never expiring ("The keeper is trimming the wick."): Inform's describe, Dialog's `(appearance $)`. A computed block (`appearance block`) words it by state; checked before `intro`; `hidden`/`concealed` still suppress. Costs nothing in a game that never sets one. |
 | <a id="ix-item-cap"></a>`item_cap` | number | The holder's ceiling: how many things fit in a container or on a supporter, nested contents counted, refusing past it with the right preposition (chapter 6). On the game block's level, `constant item_cap = N` is the player's carry limit instead. Unset means bottomless, deliberately. |
+| <a id="ix-untouchable"></a>`untouchable` | places | `untouchable from gallery, tower`: in scope at each named place (a room, or an object meaning wherever it is in scope) and out of reach there, its contents with it as far as the eye sees in; an ordinary thing at home. Set at run time with `make_untouchable(x, place)`, cleared with `change x.untouchable to nothing` (chapter 7). |
+| <a id="ix-adjacent"></a>`adjacent` | places | `adjacent to parlor`: in scope AND within reach at each named place, the same shape as `untouchable`; `make_adjacent(x, place)` at run time (chapter 7). |
 | <a id="ix-article"></a>`article` | text | The DEFINITE article, verbatim, when derivation cannot reach it: `article "las"` (las tijeras), `article "el"` (el agua). Real definite articles only; a measure phrase belongs in `indefinite`, because the definite of a cloud of gnats is still "the gnats". Store it lowercase; the compiler bakes the capital, so the object opens a sentence correctly ("Las tijeras no está en el menú."). |
 | <a id="ix-indefinite"></a>`indefinite` | text | The INDEFINITE article, verbatim: `indefinite "unas"`, an English mass noun with `indefinite "some"` ("You can see some water here."), or a measure phrase (`indefinite "a cloud of"` on gnats). Listings and first sightings use it; the definite slots ("The gnats are...") stay derived and correct. Lowercase, with the capital baked for sentence starts. |
 | <a id="ix-unseal-with"></a>`unseal_with` | object | The opener that locks and unlocks this one (for `lockable` things): a key, a keycard, a code object, whatever fits the fiction. It must be HELD to work. Omit it for a keyless lock only the story can spring. |
@@ -1441,6 +1443,76 @@ companion who follows the player, of their examinable parts, of anything the
 parser should always answer for. Backstage contents are never listed, since
 their room is never entered, so they defend themselves in their own
 handlers. The whole mechanism folds away in a game that stages nothing.
+
+### Seen from elsewhere: untouchable and adjacent
+
+Backstage is everywhere. For a thing that can be seen from one particular
+place, and stays an ordinary thing in its own, a thing or a whole holder
+names the places it is seen from:
+
+```
+room workshop
+    name "Workshop"
+    desc "Benches, vices, a smell of oil."
+    untouchable from gallery          // the whole workshop, seen from the gallery
+
+thing shelf of supporter in kitchen
+    name "pass-through shelf"
+    words shelf, hatch
+    fixed
+    adjacent to parlor                // seen AND reached from the parlor
+```
+
+`untouchable from` brings the thing into scope at each place it names and
+keeps it out of reach there: from the gallery, EXAMINE CLOCK answers and
+TAKE CLOCK refuses ("The carriage clock is beyond your reach."). Down in
+the workshop the clock is an ordinary thing. `adjacent to` brings the
+thing into scope within reach, so the pie on the shelf can be taken from
+the parlor. The connector is part of the line: `untouchable` always says
+`from`, `adjacent` always says `to`, and a thing out of reach everywhere
+is `beyond` instead (chapter 5).
+
+A declaration on a holder covers what it holds, as far as the eye could
+see into it from the place: what stands on a supporter, what lies in an
+open or clear container, a character's exposed belongings. A shut box in
+the workshop keeps its contents out of view from the gallery.
+
+A place is a room or an object. An object place means wherever that
+object is in scope, so a part shown inside a moving thing follows it:
+
+```
+thing spring in vault
+    name "mainspring"
+    words spring
+    untouchable from automaton        // seen wherever the automaton is
+```
+
+The places change at run time. `make_untouchable(spring, automaton)` and
+`make_adjacent(lever, cab)` set one place, replacing the declared list,
+and `change spring.untouchable to nothing` clears it. `spring.untouchable`
+reads the first place, or `nothing`. A run-time write names its object,
+which the compiler then gives the slot the write fills:
+
+```
+thing key in automaton
+    name "winding key"
+    words key
+    exposed
+    on turn
+        if spring.untouchable is nothing
+            make_untouchable(spring, automaton)
+            say "The chest plate swings open on a coiled mainspring."
+        else
+            change spring.untouchable to nothing
+            say "The chest plate clicks shut."
+```
+
+Nothing is listed in the place it is seen from: the vantage room's own
+description says what lies in view ("Below, the long bench and its clocks
+lie in plain view."), as with backstage things. Light is the player's
+own: a dark gallery sees nothing below. Both declarations fold away in a
+game that uses neither. Worked example:
+[examples/features/untouchable-adjacent.storyarc](../examples/features/untouchable-adjacent.storyarc).
 
 <a id="ix-visible-reachable"></a>Two predicates Cosmos provides for conditions: `<obj> is visible` (in scope
 and the location lit; examining needs this) and `<obj> is reachable` (visible
@@ -7393,6 +7465,7 @@ Standard boolean properties: `fixed`, `scenery`, `hidden`, `concealed`,
 table with each one's usage is in chapter 5.
 
 Standard value properties: `name`, `words`, `desc`, `item_cap`, `unseal_with`,
+`untouchable from <places>`, `adjacent to <places>`,
 `score`, `max_score`, `turns`.
 
 Standard action names: `look`, `examine`, `search`, `take`, `drop`, `put`,
@@ -7551,6 +7624,7 @@ links follow the text wherever it moves.
 - actions, standard: see standard verbs
 - `active`: [chapter 5, Standard attributes](#ix-active)
 - addressing a character: [chapter 17, The five ways to address a character](#the-five-ways-to-address-a-character)
+- `adjacent`: [chapter 5, Standard value properties](#ix-adjacent)
 - adjective marker (`>`): [chapter 14](#ix-adjective-marker)
 - `after`, `every`: [chapter 16](#chapter-16-daemons-timers-and-background-performers)
 - `alter`: [chapter 9](#ix-alter)
@@ -7710,6 +7784,7 @@ links follow the text wherever it moves.
 
 **M**
 
+- `make_untouchable`, `make_adjacent`: [chapter 7, Seen from elsewhere: untouchable and adjacent](#seen-from-elsewhere-untouchable-and-adjacent)
 - `maniacswap`: [chapter 22, maniacswap](#maniacswap)
 - `matrix`: [chapter 2, 4a. matrix: a catalog you can grow (summon.matrix)](#4a-matrix-a-catalog-you-can-grow-summonmatrix), [chapter 22, matrix](#matrix)
 - messages, library: see standard responses
@@ -7838,6 +7913,7 @@ links follow the text wherever it moves.
 **U**
 
 - `unseal_with`: [chapter 5, Standard value properties](#ix-unseal-with)
+- `untouchable`: [chapter 5, Standard value properties](#ix-untouchable)
 - `use`: [chapter 22, use](#use)
 
 **V**
@@ -7850,7 +7926,7 @@ links follow the text wherever it moves.
 - `verb`: [chapter 12](#chapter-12-verbs-grammar-and-the-standard-actions)
 - `verbose_exits`: [chapter 22, verbose_exits](#verbose_exits)
 - verbs: [chapter 12](#chapter-12-verbs-grammar-and-the-standard-actions)
-- `visible`, `reachable`: [chapter 7](#ix-visible-reachable)
+- `visible`, `reachable`: [chapter 7, Seen from elsewhere: untouchable and adjacent](#ix-visible-reachable)
 - `visited`: [chapter 5, Standard attributes](#ix-visited)
 
 **W**

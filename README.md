@@ -42,8 +42,8 @@ or later, which you almost certainly already have.
 
 | Component | Version | Download |
 |-----------|---------|----------|
-| **arcc**, the compiler (the Cosmos library is embedded inside it) | 2.40.0 | [build/arcc](build/arcc) |
-| **Cosmos**, the standard library | 1.54.3 | shipped inside `arcc` |
+| **arcc**, the compiler (the Cosmos library is embedded inside it) | 2.41.0 | [build/arcc](build/arcc) |
+| **Cosmos**, the standard library | 1.55.0 | shipped inside `arcc` |
 | **Actaea**, the reference interpreter | 2.2.0 | [build/actaea](build/actaea) |
 | **arcimg**, the arc_image tool (optional, for graphics) | 2.3.1 | [build/arcimg](build/arcimg) |
 | **proteus**, the web story builder (optional, for the web) | 1.0.0 | [build/proteus](build/proteus) |
@@ -93,7 +93,7 @@ the compiler itself works:
   Arcturus constructs map to Z-machine opcodes and the story-file image, plus the
   size levers (dead-code elimination and abbreviation text compression).
 
-For a taste, the two small games live under [examples/](examples/) - the Brass Lantern and the classic Cloak of Darkness. A plethora of teaching showcases sit alongside them: [examples/features/](examples/features/) isolates core-language features (the container knowledge model, computed properties, kinds and inheritance, doors and locks, an object existing in several rooms (`in a, b`) beside multi-room scenery with `spans`, the `intro` first-look property, grains, positional grammar, the object catch-all, daemons and timers, the usage of
+For a taste, the two small games live under [examples/](examples/) - the Brass Lantern and the classic Cloak of Darkness. A plethora of teaching showcases sit alongside them: [examples/features/](examples/features/) isolates core-language features (the container knowledge model, computed properties, kinds and inheritance, doors and locks, an object existing in several rooms (`in a, b`) beside multi-room scenery with `spans`, things seen or reached from another place (`untouchable from`, `adjacent to`), the `intro` first-look property, grains, positional grammar, the object catch-all, daemons and timers, the usage of
 Z-machine colors, the player object with its standard self-words, pronouns, and Spanish clitic forms), and much more. [examples/granules/](examples/granules/) shows the summonable granules (for example the NPC engine with its patrols and orders, maniacswap's multiple player characters, the Infocom-style and menu-driven conversation systems, the status line, verbose exits, the extended verbs, the nautical directions, light levels that spill through doorways, and the quote box to name a few).
 
 ## File extensions

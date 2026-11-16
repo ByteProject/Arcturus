@@ -270,6 +270,11 @@ block beyond_blocked(obj)
         if player is beyond
             if at_hand(obj) is 0
                 return 1
+        // Seen only from where the player stands (`untouchable from`): out
+        // of reach here, an ordinary thing at home. Folds away without it.
+        if any_views is 1
+            if view_untouchable(obj) is 1
+                return 1
     return 0
 
 // The thing to name in the refusal: the object itself when it is beyond,

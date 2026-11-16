@@ -261,6 +261,7 @@ CEILINGS = {
     "features/on-other.storyarc": 19248,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
     "features/zcolor.storyarc": 19696,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
     "features/text-styles.storyarc": 19496,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
+    "features/untouchable-adjacent.storyarc": 22308,  # 2026-11-17 new: place-by-place scope (untouchable from, adjacent to)
     "features/computed-name.storyarc": 19388,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
     "features/scoring.storyarc": 21664,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
     "features/spans.storyarc": 19536,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves

@@ -45,6 +45,10 @@ _KIND_NOT_ATTRIBUTE = frozenset(
 )
 
 
+# The place-by-place scope lists (docs/01 chapter 7).
+_VIEW_PROPS = ("untouchable", "adjacent")
+
+
 class Analyzer:
     def __init__(
         self,
@@ -154,6 +158,7 @@ class Analyzer:
                             f"direction",
                             mx.line)
         self._build_properties()
+        self._prepare_views()
         self._apply_body()
         # Exits are validated once the members are on their objects (the
         # properties pass just filled obj.props) and the kind chains are
@@ -329,6 +334,77 @@ class Analyzer:
                 break
             visit(n)
         return found[0]
+
+    def _register_view_prop(self, name: str) -> None:
+        w = self.world
+        prop = w.properties.get(name)
+        if prop is None:
+            w.properties[name] = wm.Property(
+                name, prelude.T_LIST, "game", wm.STORE_SLOT,
+                [(self.filename, 0)])
+        else:
+            prop.type = prelude.T_LIST
+            prop.storage = wm.STORE_SLOT
+
+    def _prepare_views(self) -> None:
+        """Place-by-place scope (docs/01 chapter 7). The declared places must
+        be rooms or objects. A run-time write (`make_untouchable(chip,
+        droid)`, `change chip.untouchable to droid`) needs a slot to write
+        into, so every object a write names gets one (one place, empty)
+        when neither it nor its kind declares the list; the write must name
+        the object, since only a named object can be given its slot."""
+        w = self.world
+        holders = [(o.name, o.props) for o in w.objects.values()]
+        holders += [(k.name, k.props) for k in w.kinds.values()]
+        for owner, props in holders:
+            for pname in _VIEW_PROPS:
+                decl = props.get(pname)
+                if decl is None or decl.form != ast.PROP_VALUE:
+                    continue
+                for v in decl.values:
+                    if not (isinstance(v, ast.Name) and v.ident in w.objects):
+                        raise self._error(
+                            f"'{pname}' on '{owner}' names places: rooms or "
+                            f"objects (`{pname} "
+                            f"{'from' if pname == 'untouchable' else 'to'} "
+                            f"balcony`)", decl.line)
+        writes = []
+
+        def visit(node):
+            if isinstance(node, ast.Call) and node.name in (
+                    "make_untouchable", "make_adjacent"):
+                writes.append((node.name[5:], node.args[0] if node.args else None,
+                               node.line))
+            elif (isinstance(node, ast.Change)
+                    and isinstance(node.target, ast.Dot)
+                    and node.target.prop in _VIEW_PROPS):
+                writes.append((node.target.prop, node.target.obj, node.line))
+            if not dataclasses.is_dataclass(node):
+                return
+            for f in dataclasses.fields(node):
+                v = getattr(node, f.name)
+                if isinstance(v, list):
+                    for item in v:
+                        if dataclasses.is_dataclass(item):
+                            visit(item)
+                elif dataclasses.is_dataclass(v):
+                    visit(v)
+
+        for n in self.program.decls:
+            visit(n)
+        for pname, target, line in writes:
+            if not (isinstance(target, ast.Name) and target.ident in w.objects):
+                raise self._error(
+                    f"{'make_' + pname} needs the object by name "
+                    f"(make_{pname}(chip, droid)): the compiler gives each "
+                    f"named object the slot the write fills", line)
+            self._register_view_prop(pname)
+            obj = w.objects[target.ident]
+            declared = pname in obj.props or any(
+                pname in w.kinds[k].props for k in obj.chain if k in w.kinds)
+            if not declared:
+                obj.props[pname] = ast.PropertyDecl(
+                    pname, ast.PROP_VALUE, [ast.Nothing()])
 
     def _changes_prop_of(self, objname: str, prop: str) -> bool:
         """Does any `change <objname>.<prop> to ...` appear in the program?
@@ -2032,6 +2108,11 @@ class Analyzer:
                         f"property the library never reads; the item "
                         f"ceiling is `item_cap N` (docs/01 chapter 6)"
                     )
+                if m.name in _VIEW_PROPS:
+                    # Place lists (docs/01 chapter 7), the spans shape: an
+                    # array of rooms or objects whatever the arity, so one
+                    # place never types as a single object.
+                    self._register_view_prop(m.name)
                 if m.name == "beyond" and m.form != ast.PROP_BOOL:
                     # `beyond "why"` / `beyond block` (the Charles request):
                     # the attribute plus its own explanation. Split into the
@@ -3067,6 +3148,8 @@ class Analyzer:
             # plain property reads; with a roster live these are working
             # declarations, not typos.
             skip |= {"npc", "patrol", "territory", "npc_cursor"}
+        # Read through the view intrinsics, never as plain property reads.
+        skip |= set(_VIEW_PROPS)
         noted = 0
         pools = [(o.name, o.props) for o in self.world.objects.values()]
         pools += [(k.name, k.props) for k in self.world.kinds.values()

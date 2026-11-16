@@ -1,0 +1,95 @@
+// untouchable-adjacent.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// THE CLOCKMAKER'S HOUSE. A showcase for place-by-place scope (docs/01
+// chapter 7). From the gallery the whole workshop below is in view, and
+// none of it is in reach: the workshop declares `untouchable from gallery`.
+// Down in the workshop the same bench and the same clock are ordinary
+// things. The kitchen's pass-through shelf is `adjacent to` the parlor, so
+// the pie on it can be seen AND taken from the parlor. The automaton's
+// chest plate opens on a turn of its key, and only then does the mainspring
+// inside come into view: `make_untouchable(spring, automaton)` at run time.
+//
+//   arcc examples/features/untouchable-adjacent.storyarc -o house.z5
+//   frotz house.z5
+//
+// Try: EXAMINE CLOCK. TAKE CLOCK. DOWN. TAKE CLOCK. UP. EAST. TAKE PIE.
+// EXAMINE AUTOMATON. TURN KEY. EXAMINE SPRING. TAKE SPRING.
+
+summon.statusline
+
+game
+    title  "The Clockmaker's House"
+    headline "A place-by-place scope showcase"
+    author "Stefan Vogt"
+    start gallery
+
+room gallery
+    name "Gallery"
+    desc "A narrow gallery runs above the workshop. Below, the long bench and its clocks lie in plain view, too far down to touch. Stairs lead down; the parlor is east."
+    down workshop
+    east parlor
+
+room workshop
+    name "Workshop"
+    desc "Benches, vices, a smell of oil. Stairs lead up to the gallery."
+    up gallery
+    untouchable from gallery
+
+thing bench of supporter in workshop
+    name "workbench"
+    words bench, workbench, >long
+    fixed
+    desc "Scarred oak, covered in gears."
+
+thing clock in bench
+    name "carriage clock"
+    words clock, >carriage
+    desc "Half assembled, its escapement ticking without hands."
+
+room parlor
+    name "Parlor"
+    desc "A cramped parlor. A pass-through shelf opens into the kitchen beside it. The gallery is west."
+    west gallery
+
+room kitchen
+    name "Kitchen"
+    desc "Copper pans. The pass-through shelf opens into the parlor."
+
+thing shelf of supporter in kitchen
+    name "pass-through shelf"
+    words shelf, hatch
+    fixed
+    adjacent to parlor
+    desc "A shelf through the wall, within reach from the parlor."
+
+thing pie in shelf
+    name "plum pie"
+    words pie, >plum
+    desc "Still warm."
+
+thing automaton of character in parlor
+    name "brass automaton"
+    words automaton, >brass
+    desc "A brass figure with a chest plate and a winding key in its back."
+
+thing key in automaton
+    name "winding key"
+    words key, >winding
+    exposed
+    desc "Turned once, it would open the chest plate."
+
+    on turn
+        if spring.untouchable is nothing
+            make_untouchable(spring, automaton)
+            say "The chest plate swings open on a coiled mainspring."
+        else
+            change spring.untouchable to nothing
+            say "The chest plate clicks shut."
+
+thing spring in automaton
+    name "mainspring"
+    words spring, mainspring
+    desc "Tightly coiled, humming faintly."

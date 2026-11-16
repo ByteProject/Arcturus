@@ -67,6 +67,11 @@ INTRINSICS = frozenset({
     "word_count", "word_dict", "word_len", "word_pos", "call_handler",
     "handler_of", "parent_of", "words_addr", "words_count",
     "plural_addr", "plural_count", "any_plurals", "any_pronoun_sets",
+    # untouchable_addr / adjacent_addr (+ _count) expose the place-by-place
+    # scope arrays (docs/01 chapter 7), the spans shape; any_views is the
+    # compile-time flag their walk folds on.
+    "untouchable_addr", "untouchable_count", "adjacent_addr",
+    "adjacent_count", "any_views",
     # trigger_addr / trigger_count expose an object's trigger array (the
     # #-marked words, docs/01 chapter 14), the same shape as plural.
     # any_triggers is the compile-time flag the matcher's tiebreak guards
@@ -721,6 +726,15 @@ def eval_expr(rt: Routine, ctx: Context, expr, dest=None) -> None:
         _call(rt, ctx, ast.Call(expr.ident, [], expr.line), dest)
         return
 
+    if (isinstance(expr, ast.Dot) and expr.prop in ("untouchable", "adjacent")
+            and ctx.prop_number(expr.prop) is not None):
+        # A place list (docs/01 chapter 7) is not a one-word slot, and
+        # get_prop on a longer property is undefined: the read is the
+        # list's first place, or nothing (Cosmos's view_first).
+        eval_expr(rt, ctx, expr.obj, Variable(STACK))
+        rt.op("call_vs", RoutineRef("blk_" + expr.prop + "_first"),
+              Variable(STACK), store=dest if dest is not None else Variable(STACK))
+        return
     if isinstance(expr, ast.Dot):
         pnum = ctx.prop_number(expr.prop)
         # The computed-dot door (Stefan's ruling, 2026-08-30): a short
@@ -1572,11 +1586,15 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
             raise LowerError(f"{name} needs a {prop} property")
         rt.op("get_prop_addr", op, Const(pnum), store=dest)
         _free(ctx, t)
+    elif name == "any_views":
+        _place(rt, Const(_any_views(ctx)), dest)
     elif name in ("plural_addr", "plural_count", "trigger_addr",
-                  "trigger_count", "adjective_addr", "adjective_count"):
+                  "trigger_count", "adjective_addr", "adjective_count",
+                  "untouchable_addr", "untouchable_count",
+                  "adjacent_addr", "adjacent_count"):
         # The plurals granule's group-vocabulary array, the trigger array
-        # (the #-marked words), and the adjective array (the >-marked
-        # words), all shaped like words. A game with none of the
+        # (the #-marked words), the adjective array (the >-marked words),
+        # and the untouchable and adjacent place lists, all shaped like words. A game with none of the
         # declarations has no property to read, so these lower to a plain 0
         # and the callers answer no.
         prop = name.rsplit("_", 1)[0]
@@ -2630,9 +2648,20 @@ def _any_sealed(ctx) -> int:
 
 def _any_beyond(ctx) -> int:
     """The compile-time beyond flag: 1 if any object is `beyond` (visible,
-    not touchable). The touch guards in the action defaults fold away in a
-    game where everything is within arm's length."""
+    not touchable), or anything is `untouchable from` somewhere (seen there,
+    not touched: the same touch guards refuse it). The guards in the action
+    defaults fold away in a game where everything is within arm's length."""
+    if _any_views(ctx):
+        return 1
     return 1 if (ctx.layout is not None and ctx.layout.has_beyond) else 0
+
+
+def _any_views(ctx) -> int:
+    """The place-by-place scope flag (docs/01 chapter 7): 1 when sema
+    registered `untouchable` or `adjacent` (a declaration, a make_ call, or
+    a change of either), else 0, and the scope walk folds away."""
+    props = ctx.world.properties
+    return 1 if ("untouchable" in props or "adjacent" in props) else 0
 
 
 def _any_pluribus(ctx) -> int:
@@ -4096,6 +4125,14 @@ def _change(rt, ctx, s: ast.Change):
         eval_expr(rt, ctx, s.value, Variable(slot))
         _note_local_etype(ctx, s.target.ident, s.value)
         return
+    if isinstance(s.target, ast.Dot) and s.target.prop in ("untouchable", "adjacent"):
+        # A place list, not a one-word slot (put_prop cannot write it): the
+        # change is the make_ helper, one place replacing the list.
+        eval_expr(rt, ctx, s.value, Variable(STACK))
+        eval_expr(rt, ctx, s.target.obj, Variable(STACK))
+        rt.op("call_vn", RoutineRef("blk_make_" + s.target.prop),
+              Variable(STACK), Variable(STACK))
+        return
     if isinstance(s.target, ast.Dot):
         pnum = ctx.prop_number(s.target.prop)
         if s.target.prop in getattr(ctx.world, "computed_value_props", ()):
@@ -4397,6 +4434,10 @@ def _is_object_expr(ctx, expr) -> bool:
     # printed the object's number (found beside EdwardianDuck's computed
     # property report, 2026-10-24), computed or literal alike.
     if isinstance(expr, ast.Dot):
+        # A place list reads as its first place (docs/01 chapter 7).
+        if expr.prop in ("untouchable", "adjacent") \
+                and expr.prop in ctx.world.properties:
+            return True
         prop = ctx.world.properties.get(expr.prop)
         if prop is not None and prop.type == "object" \
                 and expr.prop not in ctx.world.direction_props:
@@ -4692,6 +4733,8 @@ def _static_value(ctx, expr):
         return _any_alter(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_beyond":
         return _any_beyond(ctx)
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_views":
+        return _any_views(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_sealed":
         return _any_sealed(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_binary":

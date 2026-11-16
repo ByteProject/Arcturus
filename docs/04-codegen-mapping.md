@@ -504,6 +504,7 @@ movement), and `arcc --extract` shows every use of the rest.
 | `any_typed_slots` | any_typed_slots(): 1 when any verb grammar line carries a typed input slot (letters, number, anychar), so the matcher's class branch and slot_class_ok fold away in every other game and the story file does not grow by a byte. |
 | `any_unruled` | any_unruled(): 1 when some action has no free-standing rule, so an unclaimed command could otherwise end the turn in silence. |
 | `any_verb_read` | any_verb_read(): 1 if any author code reads verb_trigger, so the parser's store and the AGAIN/perform plumbing fold away otherwise. |
+| `any_views` | any_views(): 1 when anything is `untouchable from` or `adjacent to` a place. |
 | `any_wearable` | any_wearable(): 1 when anything declares wearable or worn, so the movers' worn gate folds away where nothing can be on the body. |
 
 ### Output and the screen
@@ -573,6 +574,8 @@ movement), and `arcc --extract` shows every use of the rest.
 
 | intrinsic | what it does |
 |---|---|
+| `adjacent_addr` | The plurals granule's group-vocabulary array, the trigger array (the #-marked words), the adjective array (the >-marked words), and the untouchable and adjacent place lists, all shaped like words. |
+| `adjacent_count` | The plurals granule's group-vocabulary array, the trigger array (the #-marked words), the adjective array (the >-marked words), and the untouchable and adjacent place lists, all shaped like words. |
 | `adjective_addr` | adjective_addr(obj): the address of the object's adjective word array. |
 | `adjective_count` | adjective_count(obj): how many adjective words the object lists. |
 | `appearance_addr` | appearance_addr(obj): the address of the object's appearance property, 0 if none. |
@@ -603,6 +606,8 @@ movement), and `arcc --extract` shows every use of the rest.
 | `topics_count` | topics_count(person): how many topics the person has (0 if none). |
 | `trigger_addr` | trigger_addr(obj): the address of the object's trigger word array. |
 | `trigger_count` | trigger_count(obj): how many trigger words the object lists. |
+| `untouchable_addr` | The plurals granule's group-vocabulary array, the trigger array (the #-marked words), the adjective array (the >-marked words), and the untouchable and adjacent place lists, all shaped like words. |
+| `untouchable_count` | The plurals granule's group-vocabulary array, the trigger array (the #-marked words), the adjective array (the >-marked words), and the untouchable and adjacent place lists, all shaped like words. |
 | `weight_of` | weight_of(obj): the thing's own weight in tenths. |
 
 ### Dispatch and the turn

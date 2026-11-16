@@ -232,6 +232,15 @@ block in_scope(obj)
         return 1
     if p is player
         return 1
+    // Place-by-place scope (docs/01 chapter 7): `untouchable from balcony`
+    // and `adjacent to hatch` bring a thing, or a whole holder's contents,
+    // into scope at places it does not sit in. Asked before the holder
+    // rules below, which return early. Folds away in a game that declares
+    // neither (any_views).
+    if any_views is 1
+        if view_busy is 0
+            if view_scope(obj) is not 0
+                return 1
     if p is not nothing
         // A component (a lever in a machine, docs/01) is in scope wherever
         // the thing it is part of is: the tree carries the relation, the
@@ -255,6 +264,128 @@ block in_scope(obj)
         if p is container
             if see_into(p)
                 return in_scope(p)
+    return 0
+
+// PLACE-BY-PLACE SCOPE (docs/01 chapter 7). A thing or a holder declares
+// the places it is seen from (`untouchable from balcony, tower_window`) or
+// reached from (`adjacent to serving_hatch`); a place is a room, or an
+// object, meaning wherever that object is in scope. Two answers: 1 seen
+// only (the reach gate refuses touch with the beyond wording), 2 seen and
+// reachable. The walk climbs from the thing through what it sits on or in,
+// as far as the player could see in (an open or clear container, a
+// supporter, a component's whole, a character's exposed belonging), so a
+// coin in the courtyard's shut box stays out of view from the balcony.
+// Unreferenced, and so dropped, in a game that declares neither.
+
+// Set while a nested scope question runs (an object place asking whether
+// IT is in scope): the nested ask is the ordinary one, so two views that
+// name each other can never recurse.
+global view_busy = 0
+
+block view_scope(obj)
+    let a = obj
+    while a is not nothing
+        let r = view_here(a)
+        if r is not 0
+            return r
+        let p = parent_of(a)
+        if p is nothing
+            return 0
+        if p is container
+            if see_into(p) is 0
+                return 0
+        else
+            if p is not supporter
+                if p is not room
+                    let shown = 0
+                    if any_components is 1
+                        if a is component
+                            change shown to 1
+                    if any_exposed is 1
+                        if p is animate
+                            if exposed_now(a) is 1
+                                change shown to 1
+                    if shown is 0
+                        return 0
+        change a to p
+    return 0
+
+// Does this one object name the player's place? adjacent first, so a
+// thing both seen from one place and reached from another reaches where
+// it is reached.
+block view_here(a)
+    if view_list(adjacent_addr(a), adjacent_count(a)) is 1
+        return 2
+    if view_list(untouchable_addr(a), untouchable_count(a)) is 1
+        return 1
+    return 0
+
+block view_list(addr, n)
+    if addr is 0
+        return 0
+    let i = 0
+    while i < n
+        let place = peek_word(addr, i)
+        if place is not nothing
+            if place is here
+                return 1
+            if place is not room
+                change view_busy to 1
+                let seen = in_scope(place)
+                change view_busy to 0
+                if seen is 1
+                    return 1
+        change i to i + 1
+    return 0
+
+// Is obj in scope ONLY through an `untouchable from` place? Then the reach
+// gate refuses touch (beyond_blocked): seen from the balcony, the fountain
+// stays a plain touchable thing in its own courtyard.
+block view_untouchable(obj)
+    if view_busy is 1
+        return 0
+    change view_busy to 1
+    let plain = in_scope(obj)
+    change view_busy to 0
+    if plain is 1
+        return 0
+    if view_scope(obj) is 1
+        return 1
+    return 0
+
+// make_untouchable(chip, droid), make_adjacent(lever, cab): the run-time
+// form, and what `change x.untouchable to place` lowers to. One place
+// replaces the declared list; nothing clears it. The compiler gives every
+// object these name a slot.
+block make_untouchable(obj, place)
+    view_put(untouchable_addr(obj), untouchable_count(obj), place)
+    return 0
+
+block make_adjacent(obj, place)
+    view_put(adjacent_addr(obj), adjacent_count(obj), place)
+    return 0
+
+// x.untouchable and x.adjacent read the first declared place, or nothing.
+block untouchable_first(obj)
+    let a = untouchable_addr(obj)
+    if a is 0
+        return nothing
+    return peek_word(a, 0)
+
+block adjacent_first(obj)
+    let a = adjacent_addr(obj)
+    if a is 0
+        return nothing
+    return peek_word(a, 0)
+
+block view_put(addr, n, place)
+    if addr is 0
+        return 0
+    poke_word(addr, 0, place)
+    let i = 1
+    while i < n
+        poke_word(addr, i, nothing)
+        change i to i + 1
     return 0
 
 // Visible needs light (examining); reachable also needs to not be shut away.
