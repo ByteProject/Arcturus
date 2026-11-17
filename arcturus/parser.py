@@ -671,8 +671,14 @@ class Parser:
             while self.check_op(","):
                 self.advance()
                 values.append(self.parse_expr())
+            # `untouchable from gallery "It is ten feet below."`: the text the
+            # refused touch speaks instead of the beyond line.
+            why = None
+            if name == "untouchable" and self.check(T.STRING):
+                why = self.parse_expr()
             self.expect_newline()
-            return ast.PropertyDecl(name, ast.PROP_VALUE, values=values, line=tok.line)
+            return ast.PropertyDecl(name, ast.PROP_VALUE, values=values,
+                                    line=tok.line, why=why)
         if self.check(T.NEWLINE):
             self.advance()
             return ast.PropertyDecl(name, ast.PROP_BOOL, line=tok.line)

@@ -12,8 +12,8 @@
 //
 // UNTOUCHABLE, seen from a place: from the gallery the whole workshop below
 // is in view and none of it is in reach (the workshop declares `untouchable
-// from gallery`). Down in the workshop the same bench and clock are ordinary
-// things. The automaton's chest plate opens on a turn of its key, and only
+// from gallery`, with the sentence a refused touch speaks). Down in the
+// workshop the same bench and clock are ordinary things. The automaton's chest plate opens on a turn of its key, and only
 // then does the mainspring inside come into view: `make_untouchable(spring,
 // automaton)` at run time.
 //
@@ -62,7 +62,7 @@ room workshop
     name "Workshop"
     desc "Benches, vices, a smell of oil. Stairs lead up to the gallery."
     up gallery
-    untouchable from gallery
+    untouchable from gallery "The workshop is a good ten feet below the railing."
 
 thing bench of supporter in workshop
     name "workbench"

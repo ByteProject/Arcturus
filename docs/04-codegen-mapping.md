@@ -608,6 +608,7 @@ movement), and `arcc --extract` shows every use of the rest.
 | `trigger_count` | trigger_count(obj): how many trigger words the object lists. |
 | `untouchable_addr` | The plurals granule's group-vocabulary array, the trigger array (the #-marked words), the adjective array (the >-marked words), and the untouchable and adjacent place lists, all shaped like words. |
 | `untouchable_count` | The plurals granule's group-vocabulary array, the trigger array (the #-marked words), the adjective array (the >-marked words), and the untouchable and adjacent place lists, all shaped like words. |
+| `untouchable_why_addr` | <prop>_addr(obj): the address of the object's desc, intro, article, or indefinite property (0 if it has none), so the room describer and the article blocks can test for one before printing it. |
 | `weight_of` | weight_of(obj): the thing's own weight in tenths. |
 
 ### Dispatch and the turn

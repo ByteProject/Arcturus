@@ -449,6 +449,9 @@ class PropertyDecl:
     # is about (Stefan's sigil). Ordinary vocabulary in `values` too; this
     # records the object's adjective-class words for the ZIL match classes.
     adjectives: list[str] = field(default_factory=list)
+    # `untouchable from gallery "why"` (docs/01 chapter 7): the optional
+    # refusal text, split by sema into the untouchable_why property.
+    why: Optional["StringLit"] = None
 
 
 @dataclass

@@ -246,8 +246,16 @@ block beyond_refuse(obj)
             return 1
     if not (beyond_why_addr(obj) is nothing)
         say obj.beyond_why
-    else
-        msg_beyond(obj)
+        return 1
+    // Seen only from here (`untouchable from gallery "..."`): the nearest
+    // declaration's own text, the thing's before its holder's. Folds away
+    // in a game without the text.
+    if any_views is 1
+        if view_untouchable(obj) is 1
+            if not (untouchable_why_addr(view_hit) is nothing)
+                say view_hit.untouchable_why
+                return 1
+    msg_beyond(obj)
     return 1
 
 // The pure half of the beyond guard: is obj out of reach, yes or no, no

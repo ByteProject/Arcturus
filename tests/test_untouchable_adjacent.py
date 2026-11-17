@@ -171,3 +171,48 @@ def test_a_run_time_write_names_the_object():
                         "let x = chip\n        make_untouchable(x, droid)")
     with pytest.raises(ArcError, match="needs the object by name"):
         _build(src)
+
+
+WHY = GAME.replace(
+    "    untouchable from balcony\n",
+    '    untouchable from balcony "The courtyard is two floors down."\n')
+
+
+def test_the_declared_text_speaks_the_refusal():
+    out = _run(WHY, ["take coin", "push fountain", "examine coin"])
+    assert "The courtyard is two floors down." in _after(out, "take coin")
+    assert "The courtyard is two floors down." in _after(out, "push fountain")
+    assert "nothing of the sort" not in _after(out, "examine coin")
+
+
+def test_at_home_the_text_never_speaks():
+    out = _run(WHY, ["down", "take coin"])
+    assert "You take the coin with you." in out
+    assert "two floors down" not in out
+
+
+def test_the_things_own_text_wins_over_its_holders():
+    src = WHY.replace(
+        'thing coin in fountain\n    name "coin"\n    words coin\n',
+        'thing coin in fountain\n    name "coin"\n    words coin\n'
+        '    untouchable from balcony "The coin glints far below."\n')
+    out = _run(src, ["take coin", "push fountain"])
+    assert "The coin glints far below." in _after(out, "take coin")
+    assert "The courtyard is two floors down." in _after(out, "push fountain")
+
+
+def test_without_a_text_the_beyond_line_speaks():
+    out = _run(GAME, ["take coin"])
+    assert "The coin is beyond your reach." in out
+
+
+def test_a_run_time_place_keeps_the_declared_text():
+    src = DROID.replace(
+        'thing chip in vault\n    name "chip"\n    words chip\n',
+        'thing chip in vault\n    name "chip"\n    words chip\n'
+        '    untouchable from vault "The chip sits deep behind the panel."\n')
+    # the declared place (the vault) reads as set, so the first press
+    # clears it and the second sets the droid
+    out = _run(src, ["hatch", "hatch", "examine chip", "take chip"])
+    assert "nothing of the sort" not in _after(out, "examine chip")
+    assert "The chip sits deep behind the panel." in _after(out, "take chip")

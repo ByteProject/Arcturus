@@ -345,6 +345,11 @@ class Analyzer:
         else:
             prop.type = prelude.T_LIST
             prop.storage = wm.STORE_SLOT
+        # The refusal text's property is read by the reach gate whenever
+        # views exist (beyond_refuse), so it is numbered with them; an
+        # object without the text answers nothing and msg_beyond speaks.
+        if "untouchable_why" not in w.properties:
+            self._unify_property("untouchable_why", prelude.T_TEXT, 0)
 
     def _prepare_views(self) -> None:
         """Place-by-place scope (docs/01 chapter 7). The declared places must
@@ -2113,6 +2118,15 @@ class Analyzer:
                     # array of rooms or objects whatever the arity, so one
                     # place never types as a single object.
                     self._register_view_prop(m.name)
+                    if getattr(m, "why", None) is not None:
+                        # The refusal text rides its own text property, so
+                        # the place list stays a pure array.
+                        self._unify_property("untouchable_why",
+                                             prelude.T_TEXT, m.line)
+                        props_out["untouchable_why"] = ast.PropertyDecl(
+                            "untouchable_why", ast.PROP_VALUE,
+                            [self._const_text(m.why)], line=m.line)
+                        m.why = None
                 if m.name == "beyond" and m.form != ast.PROP_BOOL:
                     # `beyond "why"` / `beyond block` (the Charles request):
                     # the attribute plus its own explanation. Split into the
@@ -3149,7 +3163,7 @@ class Analyzer:
             # declarations, not typos.
             skip |= {"npc", "patrol", "territory", "npc_cursor"}
         # Read through the view intrinsics, never as plain property reads.
-        skip |= set(_VIEW_PROPS)
+        skip |= set(_VIEW_PROPS) | {"untouchable_why"}
         noted = 0
         pools = [(o.name, o.props) for o in self.world.objects.values()]
         pools += [(k.name, k.props) for k in self.world.kinds.values()

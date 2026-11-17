@@ -1182,7 +1182,7 @@ feature, which declares a global boolean, not an object attribute.)
 | <a id="ix-intro"></a>`intro` | text | An object's initial appearance in a room, shown as its own paragraph while the object is untouched (`moved` clear). |
 | <a id="ix-appearance"></a>`appearance` | text | The paragraph the object ALWAYS owns in a room description, replacing its listing line and never expiring ("The keeper is trimming the wick."): Inform's describe, Dialog's `(appearance $)`. A computed block (`appearance block`) words it by state; checked before `intro`; `hidden`/`concealed` still suppress. Costs nothing in a game that never sets one. |
 | <a id="ix-item-cap"></a>`item_cap` | number | The holder's ceiling: how many things fit in a container or on a supporter, nested contents counted, refusing past it with the right preposition (chapter 6). On the game block's level, `constant item_cap = N` is the player's carry limit instead. Unset means bottomless, deliberately. |
-| <a id="ix-untouchable"></a>`untouchable` | places | `untouchable from gallery, tower`: in scope at each named place (a room, or an object meaning wherever it is in scope) and out of reach there, its contents with it as far as the eye sees in; an ordinary thing at home. Set at run time with `make_untouchable(x, place)`, cleared with `change x.untouchable to nothing` (chapter 7). |
+| <a id="ix-untouchable"></a>`untouchable` | places | `untouchable from gallery, tower`, optionally followed by the text a refused touch speaks (`untouchable from gallery "It is ten feet below."`; the beyond line otherwise): in scope at each named place (a room, or an object meaning wherever it is in scope) and out of reach there, its contents with it as far as the eye sees in; an ordinary thing at home. Set at run time with `make_untouchable(x, place)`, cleared with `change x.untouchable to nothing` (chapter 7). |
 | <a id="ix-adjacent"></a>`adjacent` | places | `adjacent to parlor`: in scope AND within reach at each named place, the same shape as `untouchable`; `make_adjacent(x, place)` at run time (chapter 7). |
 | <a id="ix-article"></a>`article` | text | The DEFINITE article, verbatim, when derivation cannot reach it: `article "las"` (las tijeras), `article "el"` (el agua). Real definite articles only; a measure phrase belongs in `indefinite`, because the definite of a cloud of gnats is still "the gnats". Store it lowercase; the compiler bakes the capital, so the object opens a sentence correctly ("Las tijeras no está en el menú."). |
 | <a id="ix-indefinite"></a>`indefinite` | text | The INDEFINITE article, verbatim: `indefinite "unas"`, an English mass noun with `indefinite "some"` ("You can see some water here."), or a measure phrase (`indefinite "a cloud of"` on gnats). Listings and first sightings use it; the definite slots ("The gnats are...") stay derived and correct. Lowercase, with the capital baked for sentence starts. |
@@ -1456,7 +1456,7 @@ names the places it is seen from:
 room workshop
     name "Workshop"
     desc "Benches, vices, a smell of oil."
-    untouchable from gallery          // the whole workshop, seen from the gallery
+    untouchable from gallery "The workshop is a good ten feet below the railing."
 
 thing shelf of supporter in kitchen
     name "pass-through shelf"
@@ -1467,8 +1467,12 @@ thing shelf of supporter in kitchen
 
 `untouchable from` brings the thing into scope at each place it names and
 keeps it out of reach there: from the gallery, EXAMINE CLOCK answers and
-TAKE CLOCK refuses ("The carriage clock is beyond your reach."). Down in
-the workshop the clock is an ordinary thing. `adjacent to` brings the
+TAKE CLOCK refuses. The text after the places is optional and is what a
+refused touch says ("The workshop is a good ten feet below the railing.");
+without one, the beyond line speaks ("The carriage clock is beyond your
+reach."). The nearest declaration's text wins, so a clock declaring its
+own `untouchable from gallery "..."` speaks that instead of the
+workshop's. Down in the workshop the clock is an ordinary thing. `adjacent to` brings the
 thing into scope within reach, so the pie on the shelf can be taken from
 the parlor. The connector is part of the line: `untouchable` always says
 `from`, `adjacent` always says `to`, and a thing out of reach everywhere
@@ -1490,7 +1494,8 @@ thing spring in vault
 ```
 
 The places change at run time. `make_untouchable(spring, automaton)` and
-`make_adjacent(lever, cab)` set one place, replacing the declared list,
+`make_adjacent(lever, cab)` set one place, replacing the declared list and
+keeping any declared text,
 and `change spring.untouchable to nothing` clears it. `spring.untouchable`
 reads the first place, or `nothing`. A run-time write names its object,
 which the compiler then gives the slot the write fills:
@@ -7468,7 +7473,7 @@ Standard boolean properties: `fixed`, `scenery`, `hidden`, `concealed`,
 table with each one's usage is in chapter 5.
 
 Standard value properties: `name`, `words`, `desc`, `item_cap`, `unseal_with`,
-`untouchable from <places>`, `adjacent to <places>`,
+`untouchable from <places> ["text"]`, `adjacent to <places>`,
 `score`, `max_score`, `turns`.
 
 Standard action names: `look`, `examine`, `search`, `take`, `drop`, `put`,

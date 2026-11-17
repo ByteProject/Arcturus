@@ -282,11 +282,17 @@ block in_scope(obj)
 // name each other can never recurse.
 global view_busy = 0
 
+// The object whose own declaration answered the last view question (the
+// thing itself or the holder it sits in): its untouchable text, if any,
+// speaks the refused touch.
+global view_hit = nothing
+
 block view_scope(obj)
     let a = obj
     while a is not nothing
         let r = view_here(a)
         if r is not 0
+            change view_hit to a
             return r
         let p = parent_of(a)
         if p is nothing

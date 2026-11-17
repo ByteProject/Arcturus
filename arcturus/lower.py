@@ -71,7 +71,7 @@ INTRINSICS = frozenset({
     # scope arrays (docs/01 chapter 7), the spans shape; any_views is the
     # compile-time flag their walk folds on.
     "untouchable_addr", "untouchable_count", "adjacent_addr",
-    "adjacent_count", "any_views",
+    "adjacent_count", "any_views", "untouchable_why_addr",
     # trigger_addr / trigger_count expose an object's trigger array (the
     # #-marked words, docs/01 chapter 14), the same shape as plural.
     # any_triggers is the compile-time flag the matcher's tiebreak guards
@@ -1569,7 +1569,7 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         _free(ctx, t)
     elif name in ("desc_addr", "intro_addr", "article_addr", "indefinite_addr",
                   "tag_addr", "appearance_addr", "beyond_why_addr",
-                  "name_cap_addr"):
+                  "untouchable_why_addr", "name_cap_addr"):
         # <prop>_addr(obj): the address of the object's desc, intro, article,
         # or indefinite property (0 if it has none), so the room describer and
         # the article blocks can test for one before printing it.
@@ -1577,9 +1577,9 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         op, t = _operand(rt, ctx, args[0])
         pnum = ctx.prop_number(prop)
         if pnum is None:
-            if prop == "beyond_why":
-                # A game with beyond but no why texts: the presence test
-                # answers nothing and the generic msg_beyond speaks.
+            if prop in ("beyond_why", "untouchable_why"):
+                # A game with beyond (or untouchable) but no why texts: the
+                # presence test answers nothing and msg_beyond speaks.
                 _place(rt, Const(0), dest)
                 _free(ctx, t)
                 return
