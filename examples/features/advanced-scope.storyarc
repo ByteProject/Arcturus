@@ -1,30 +1,56 @@
-// untouchable-adjacent.storyarc
+// advanced-scope.storyarc
 // part of Arcturus, a programming language and compiler for the Infocom Z-machine.
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// THE CLOCKMAKER'S HOUSE. A showcase for place-by-place scope (docs/01
-// chapter 7). From the gallery the whole workshop below is in view, and
-// none of it is in reach: the workshop declares `untouchable from gallery`.
-// Down in the workshop the same bench and the same clock are ordinary
-// things. The kitchen's pass-through shelf is `adjacent to` the parlor, so
-// the pie on it can be seen AND taken from the parlor. The automaton's
-// chest plate opens on a turn of its key, and only then does the mainspring
-// inside come into view: `make_untouchable(spring, automaton)` at run time.
+// THE CLOCKMAKER'S HOUSE. A showcase for scope beyond the room you stand
+// in (docs/01 chapter 7), three ways:
 //
-//   arcc examples/features/untouchable-adjacent.storyarc -o house.z5
+// BACKSTAGE, everywhere: the clockwork wren on your shoulder is declared
+// `in scope`, so it answers in every room without ever being carried or
+// listed, and defends itself in its own handlers.
+//
+// UNTOUCHABLE, seen from a place: from the gallery the whole workshop below
+// is in view and none of it is in reach (the workshop declares `untouchable
+// from gallery`). Down in the workshop the same bench and clock are ordinary
+// things. The automaton's chest plate opens on a turn of its key, and only
+// then does the mainspring inside come into view: `make_untouchable(spring,
+// automaton)` at run time.
+//
+// ADJACENT, reached from a place: the kitchen's pass-through shelf is
+// `adjacent to` the parlor, so the pie on it can be seen AND taken from the
+// parlor.
+//
+//   arcc examples/features/advanced-scope.storyarc -o house.z5
 //   frotz house.z5
 //
-// Try: EXAMINE CLOCK. TAKE CLOCK. DOWN. TAKE CLOCK. UP. EAST. TAKE PIE.
-// EXAMINE AUTOMATON. TURN KEY. EXAMINE SPRING. TAKE SPRING.
+// Try: EXAMINE WREN. TAKE WREN. EXAMINE CLOCK. TAKE CLOCK. DOWN. EXAMINE
+// WREN. TAKE CLOCK. UP. EAST. TAKE PIE. EXAMINE AUTOMATON. TURN KEY.
+// EXAMINE SPRING. TAKE SPRING.
 
 summon.statusline
 
 game
     title  "The Clockmaker's House"
-    headline "A place-by-place scope showcase"
+    headline "An advanced scope showcase"
     author "Stefan Vogt"
     start gallery
+
+// BACKSTAGE: in scope in every room, light or dark, never listed. It is
+// scenery, so TAKE refuses without a word of ours; its own handlers give
+// it a voice.
+thing wren in scope
+    name "clockwork wren"
+    words wren, bird, >clockwork
+    scenery
+    desc "A brass wren no bigger than your thumb, perched on your shoulder. Its key turns slowly in its back."
+
+    on listen
+        say "The wren ticks softly beside your ear."
+
+    on take
+        say "The wren hops along your collar, out of your fingers, and settles again."
+        change refused to 1
 
 room gallery
     name "Gallery"

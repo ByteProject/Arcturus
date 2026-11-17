@@ -1443,6 +1443,8 @@ companion who follows the player, of their examinable parts, of anything the
 parser should always answer for. Backstage contents are never listed, since
 their room is never entered, so they defend themselves in their own
 handlers. The whole mechanism folds away in a game that stages nothing.
+Worked example, a clockwork wren on the player's shoulder:
+[examples/features/advanced-scope.storyarc](../examples/features/advanced-scope.storyarc).
 
 ### Seen from elsewhere: untouchable and adjacent
 
@@ -1512,7 +1514,8 @@ description says what lies in view ("Below, the long bench and its clocks
 lie in plain view."), as with backstage things. Light is the player's
 own: a dark gallery sees nothing below. Both declarations fold away in a
 game that uses neither. Worked example:
-[examples/features/untouchable-adjacent.storyarc](../examples/features/untouchable-adjacent.storyarc).
+[examples/features/advanced-scope.storyarc](../examples/features/advanced-scope.storyarc),
+which also shows a backstage companion beside them.
 
 <a id="ix-visible-reachable"></a>Two predicates Cosmos provides for conditions: `<obj> is visible` (in scope
 and the location lit; examining needs this) and `<obj> is reachable` (visible
