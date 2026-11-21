@@ -91,7 +91,9 @@ INTRINSICS = frozenset({
     # the describer's presence pass, any_sight (the sight form, `spans`) the
     # marker read; is_presence(obj) answers whether THIS object's array means
     # existence, folding to a constant unless both forms are live in one game.
-    "any_presence", "any_sight", "is_presence",
+    # presence_table is the existence objects' roster (count word, then
+    # object numbers), so the describer walks only them.
+    "any_presence", "any_sight", "is_presence", "presence_table",
     # The NPC engine (summon.npcengine, docs/01 chapter 22): npc_table is the
     # roster's base address (the __npcs__ global, 0 without a roster);
     # patrol/territory expose a character's route arrays exactly as spans;
@@ -1622,6 +1624,11 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         rt.op("get_prop_len", Variable(STACK), store=Variable(STACK))
         rt.op("div", Variable(STACK), Const(2), store=dest)
         _free(ctx, t)
+    elif name == "presence_table":
+        # presence_table(): the existence-object roster's base address (0
+        # without an `in a, b` object), from the __presence__ global
+        # build_story seeds; a count word, then the object numbers.
+        _place(rt, Variable(ctx.globals["__presence__"]), dest)
     elif name == "npc_table":
         # npc_table(): the NPC roster's base address (0 without a roster),
         # from the __npcs__ global build_story seeds.

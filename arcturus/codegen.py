@@ -1096,9 +1096,11 @@ _BUILTIN_GLOBALS = [
 # otherwise): the exit pipeline runs for real, and leave_report answers
 # with silence or foresight's promise instead of the get-off line.
 # Written only behind the any_enterable fold.
+# __presence__ is the existence-object roster's base address (0 without
+# an `in a, b` object), the describer's presence walks read it.
 _TAIL_GLOBALS = ("commanded", "__npcs__", "two_swap", "implicit_leave",
                  "posture", "class_fault",
-                 "m_best", "m_score", "m_full", "m_tied")
+                 "m_best", "m_score", "m_full", "m_tied", "__presence__")
 
 
 def _globals_map(world: wm.World) -> dict:
@@ -1549,6 +1551,11 @@ def build_story(
         sf.set_word(
             globals_addr + (gmap["__npcs__"] - 16) * 2,
             objects_addr + layout.npcs_off,
+        )
+    if layout is not None and layout.presence_off >= 0:
+        sf.set_word(
+            globals_addr + (gmap["__presence__"] - 16) * 2,
+            objects_addr + layout.presence_off,
         )
     if duals_addr:
         sf.set_word(

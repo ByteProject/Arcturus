@@ -223,7 +223,7 @@ CEILINGS = {
     "features/consult-about.storyarc": 20216,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
     "features/session-verbs.storyarc": 19772,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
     "features/vary.storyarc": 21728,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "features/foresight.storyarc": 22164,  # 2026-11-21 repriced (+24): paragraphs close the room description, scenery lines first
+    "features/foresight.storyarc": 22168,  # 2026-11-21 repriced (+4): the presence walks read the compiler's roster of existence objects, not the whole world
     "features/beyond.storyarc": 23036,  # 2026-11-21 repriced (+16): paragraphs close the room description, scenery lines first
     "features/alter.storyarc": 21132,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
     "features/catalogs.storyarc": 20320,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
@@ -234,26 +234,26 @@ CEILINGS = {
     "features/trigger.storyarc": 19984,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
     "features/adjectives.storyarc": 20620,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
     "granules/nautical.storyarc": 20208,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "granules/npcengine.storyarc": 22512,  # 2026-11-21 repriced (+24): paragraphs close the room description, scenery lines first
+    "granules/npcengine.storyarc": 22516,  # 2026-11-21 repriced (+4): the presence walks read the compiler's roster of existence objects, not the whole world
     "granules/maniacswap.storyarc": 20696,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "beispiel-deutsch.storyarc": 29812,  # 2026-11-21 repriced (+24): paragraphs close the room description, scenery lines first
+    "beispiel-deutsch.storyarc": 29816,  # 2026-11-21 repriced (+4): the presence walks read the compiler's roster of existence objects, not the whole world
     "brass-lantern.storyarc": 21108,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
     "cloak-of-darkness.storyarc": 23088,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "ejemplo-espanol.storyarc": 26416,  # 2026-11-21 repriced (+24): paragraphs close the room description, scenery lines first
+    "ejemplo-espanol.storyarc": 26420,  # 2026-11-21 repriced (+4): the presence walks read the compiler's roster of existence objects, not the whole world
     "features/computed-properties.storyarc": 19416,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
     "features/containers.storyarc": 20612,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
     "features/daemons-and-timers.storyarc": 21644,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "features/doors-and-locks.storyarc": 20112,  # 2026-11-21 repriced (+24): paragraphs close the room description, scenery lines first
+    "features/doors-and-locks.storyarc": 20116,  # 2026-11-21 repriced (+4): the presence walks read the compiler's roster of existence objects, not the whole world
     "features/appearance.storyarc": 20416,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
     "features/components.storyarc": 19684,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
     "granules/whistle.storyarc": 19064,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "granules/lighttopology.storyarc": 21248,  # 2026-11-21 repriced (+24): paragraphs close the room description, scenery lines first
-    "features/pathfinding.storyarc": 22072,  # 2026-11-21 repriced (+28): paragraphs close the room description, scenery lines first
+    "granules/lighttopology.storyarc": 21252,  # 2026-11-21 repriced (+4): the presence walks read the compiler's roster of existence objects, not the whole world
+    "features/pathfinding.storyarc": 22076,  # 2026-11-21 repriced (+4): the presence walks read the compiler's roster of existence objects, not the whole world
     "features/perform.storyarc": 19384,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
     "features/grains.storyarc": 19172,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
     "features/handlers.storyarc": 20584,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
     "features/first-person.storyarc": 20060,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "features/word-lists.storyarc": 19832,  # 2026-11-21 repriced (+24): paragraphs close the room description, scenery lines first
+    "features/word-lists.storyarc": 19836,  # 2026-11-21 repriced (+4): the presence walks read the compiler's roster of existence objects, not the whole world
     "features/grammar-bind.storyarc": 20692,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
     "features/grammar.storyarc": 19488,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
     "features/introproperty.storyarc": 21300,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first

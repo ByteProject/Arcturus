@@ -13053,3 +13053,16 @@ paragraphs last; existence objects follow the same order in every room
 they are in. One order, no switch back. The separate counting pass
 costs 12 bytes in most games (up to 28); the handbook's chapter 7
 passage gains the order with a worked transcript.
+
+## The presence walks read a roster (arcc 2.43.1, Cosmos 1.57.1,
+## 2026-11-21)
+
+Measured after the reorder: in a game with existence objects (`in a,
+b`), the new counting pass walked every object in the game on each room
+description, +39% opcodes per LOOK in a 140-object world. STEFAN'S
+RULING: "+39% is not acceptable for a system that is made to work well
+on classic 8-bit systems." The compiler now emits a roster of the
+existence objects (a count word, then their numbers) and the describer's
+presence walks read it instead of the whole world. The same LOOK went
+from 5029 opcodes before the reorder to 1258 after it; a game without
+the form is untouched, and games with it grew 4 bytes.

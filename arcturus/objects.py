@@ -174,6 +174,10 @@ class Layout:
     # Offset of the NPC engine's roster table within the object-table region
     # (summon.npcengine), -1 when no character joined the roster.
     npcs_off: int = -1
+    # Offset of the existence-object roster (docs/01 chapter 3, `in a, b`)
+    # within the object-table region, -1 in a game without the form;
+    # build_story seeds the __presence__ global with its absolute address.
+    presence_off: int = -1
     # Scoring (docs/01): offsets of the rank ladder and the labelled-pool
     # tables (-1 when absent), and the rank threshold patch sites
     # (position, percent-or-None, index, count); thresholds are written in
@@ -736,6 +740,7 @@ def _emit_table(world: wm.World, layout: Layout) -> None:
     _emit_topic_tables(world, layout, topic_sites)
     _emit_ambience_tables(world, layout)
     _emit_npc_roster(world, layout)
+    _emit_presence_roster(world, layout)
     _emit_scoring_tables(world, layout)
     # A global initialized with a string holds its packed address; register
     # the text so build_story can seed the slot once addresses are known.
@@ -832,6 +837,27 @@ def _emit_npc_roster(world, layout) -> None:
         at = len(table)
         table += bytes(2)
         _put_word(table, at, layout.obj_number.get(name, 0))
+
+
+def _emit_presence_roster(world, layout) -> None:
+    """The existence objects' roster (`in a, b`, docs/01 chapter 3): a count
+    word, then one object number per existence object, ascending. The
+    describer's presence walks read it through presence_table() (the
+    __presence__ global build_story seeds), so a room description visits
+    only these objects instead of every object in the game: on an 8-bit
+    machine the whole-world walk was the cost (Stefan, 2026-11-21). A
+    game without the form emits nothing and the global stays 0."""
+    nums = sorted(layout.obj_number[name]
+                  for name, obj in world.objects.items()
+                  if obj.presence and name in layout.obj_number)
+    if not nums:
+        return
+    table = layout.table
+    layout.presence_off = len(table)
+    table += bytes(2 * (len(nums) + 1))
+    _put_word(table, layout.presence_off, len(nums))
+    for k, num in enumerate(nums, 1):
+        _put_word(table, layout.presence_off + 2 * k, num)
 
 
 def _emit_topic_tables(world, layout, topic_sites: dict) -> None:

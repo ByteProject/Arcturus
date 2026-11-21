@@ -598,6 +598,7 @@ movement), and `arcc --extract` shows every use of the rest.
 | `patrol_count` | How many rooms the route names (array length / 2). |
 | `plural_addr` | plural_addr(obj): the address of the object's plural word array. |
 | `plural_count` | plural_count(obj): how many plural words the object lists. |
+| `presence_table` | presence_table(): the existence-object roster's base address (0 without an `in a, b` object), from the __presence__ global build_story seeds; a count word, then the object numbers. |
 | `spans_addr` | spans_addr(obj): the address of the object's spans array (0 if none). |
 | `spans_count` | spans_count(obj): how many rooms the object spans (array length / 2). |
 | `tag_addr` | tag_addr(obj): the address of the object's tag property, 0 if none. |
