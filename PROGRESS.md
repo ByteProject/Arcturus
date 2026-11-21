@@ -13137,3 +13137,19 @@ after the gates, so the block read nothing or the previous turn's
 action. STEFAN'S GO on the fix: the action is now published before the
 contracts (run_turn and the sweep), and the fold counts property blocks.
 The beyond example's hook words PULL apart from TAKE.
+
+## Fungibles stay dropped (2026-11-21)
+
+An adopter asked how to keep variants of one thing as a single master
+object. The answer exists (word_dict against a list, or separate
+objects sharing a kind, about 30 bytes of fixed cost each), and Stefan
+asked whether a real identical-objects feature ("eight coins" folded in
+an inventory) could be added pay-for-use. He had the Inform 6 library
+read first for scope: there identity runs through the parser's central
+path (descriptors and number words, adjudication into equivalence
+classes, the disambiguation question's per-group articles, plural flags
+in matching) and through the central lister (grouping siblings,
+plural names, number words, state-sensitive equality). STEFAN'S RULING:
+it touches too many points in the library without a massive benefit;
+the July ruling that dropped fungibles stands. He noted that PunyInform's
+authors decided against it too, for reasons he knows to be valid.
