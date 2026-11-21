@@ -216,74 +216,74 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 # chain); a held thing skips the probe, the floor-to-container shortcut
 # still moves takeable things in one command.
 CEILINGS = {
-    "features/yes-no.storyarc": 19316,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "features/press-any-key.storyarc": 20204,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "features/shiftable.storyarc": 19700,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "features/enhance-redefine.storyarc": 20060,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "features/consult-about.storyarc": 20216,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "features/session-verbs.storyarc": 19772,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "features/vary.storyarc": 21728,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "features/foresight.storyarc": 22168,  # 2026-11-21 repriced (+4): the presence walks read the compiler's roster of existence objects, not the whole world
-    "features/beyond.storyarc": 23036,  # 2026-11-21 repriced (+16): paragraphs close the room description, scenery lines first
-    "features/alter.storyarc": 21132,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "features/catalogs.storyarc": 20320,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "features/matrix.storyarc": 20656,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "features/direction-grammar.storyarc": 19732,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "features/scenery-contents.storyarc": 20980,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "features/prefer.storyarc": 19164,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "features/trigger.storyarc": 19984,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "features/adjectives.storyarc": 20620,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "granules/nautical.storyarc": 20208,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "granules/npcengine.storyarc": 22516,  # 2026-11-21 repriced (+4): the presence walks read the compiler's roster of existence objects, not the whole world
-    "granules/maniacswap.storyarc": 20696,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "beispiel-deutsch.storyarc": 29816,  # 2026-11-21 repriced (+4): the presence walks read the compiler's roster of existence objects, not the whole world
-    "brass-lantern.storyarc": 21108,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "cloak-of-darkness.storyarc": 23088,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "ejemplo-espanol.storyarc": 26416,  # 2026-11-21 repriced (-4): the presence marker property is gone (is_presence retired)
-    "features/computed-properties.storyarc": 19416,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "features/containers.storyarc": 20612,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "features/daemons-and-timers.storyarc": 21644,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "features/doors-and-locks.storyarc": 20116,  # 2026-11-21 repriced (+4): the presence walks read the compiler's roster of existence objects, not the whole world
-    "features/appearance.storyarc": 20416,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "features/components.storyarc": 19684,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "granules/whistle.storyarc": 19064,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "granules/lighttopology.storyarc": 21252,  # 2026-11-21 repriced (+4): the presence walks read the compiler's roster of existence objects, not the whole world
-    "features/pathfinding.storyarc": 22076,  # 2026-11-21 repriced (+4): the presence walks read the compiler's roster of existence objects, not the whole world
-    "features/perform.storyarc": 19384,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "features/grains.storyarc": 19172,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "features/handlers.storyarc": 20584,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "features/first-person.storyarc": 20060,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "features/word-lists.storyarc": 19836,  # 2026-11-21 repriced (+4): the presence walks read the compiler's roster of existence objects, not the whole world
-    "features/grammar-bind.storyarc": 20692,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "features/grammar.storyarc": 19488,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "features/introproperty.storyarc": 21300,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "features/kinds-and-inheritance.storyarc": 19380,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "features/on-other.storyarc": 19260,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "features/zcolor.storyarc": 19708,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "features/text-styles.storyarc": 19508,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "features/advanced-scope.storyarc": 22692,  # 2026-11-21 repriced (+16): paragraphs close the room description, scenery lines first
-    "features/computed-name.storyarc": 19400,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "features/scoring.storyarc": 21676,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "features/spans.storyarc": 19548,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "features/vehicles.storyarc": 20932,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "features/success.storyarc": 20244,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "features/edible.storyarc": 19876,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "features/text-slot.storyarc": 20424,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "granules/carryweight.storyarc": 20632,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "granules/ambience.storyarc": 21292,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "granules/conversations.storyarc": 21256,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "granules/extended-verbs.storyarc": 22980,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "granules/infocom-interrogation.storyarc": 22636,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "granules/quotes.storyarc": 19444,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "granules/take-all.storyarc": 22636,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "granules/plurals.storyarc": 20356,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "granules/statusline.storyarc": 19416,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "granules/verbose-exits.storyarc": 19356,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "features/yes-no.storyarc": 19304,  # 2026-11-21 repriced (-12): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/press-any-key.storyarc": 20192,  # 2026-11-21 repriced (-12): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/shiftable.storyarc": 19688,  # 2026-11-21 repriced (-12): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/enhance-redefine.storyarc": 20048,  # 2026-11-21 repriced (-12): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/consult-about.storyarc": 20204,  # 2026-11-21 repriced (-12): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/session-verbs.storyarc": 19760,  # 2026-11-21 repriced (-12): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/vary.storyarc": 21712,  # 2026-11-21 repriced (-16): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/foresight.storyarc": 22104,  # 2026-11-21 repriced (-64): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/beyond.storyarc": 23020,  # 2026-11-21 repriced (-16): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/alter.storyarc": 21116,  # 2026-11-21 repriced (-16): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/catalogs.storyarc": 20308,  # 2026-11-21 repriced (-12): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/matrix.storyarc": 20644,  # 2026-11-21 repriced (-12): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/direction-grammar.storyarc": 19720,  # 2026-11-21 repriced (-12): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/scenery-contents.storyarc": 20964,  # 2026-11-21 repriced (-16): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/prefer.storyarc": 19152,  # 2026-11-21 repriced (-12): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/trigger.storyarc": 19968,  # 2026-11-21 repriced (-16): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/adjectives.storyarc": 20604,  # 2026-11-21 repriced (-16): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "granules/nautical.storyarc": 20196,  # 2026-11-21 repriced (-12): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "granules/npcengine.storyarc": 22456,  # 2026-11-21 repriced (-60): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "granules/maniacswap.storyarc": 20684,  # 2026-11-21 repriced (-12): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "beispiel-deutsch.storyarc": 29752,  # 2026-11-21 repriced (-64): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "brass-lantern.storyarc": 21096,  # 2026-11-21 repriced (-12): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "cloak-of-darkness.storyarc": 23072,  # 2026-11-21 repriced (-16): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "ejemplo-espanol.storyarc": 26352,  # 2026-11-21 repriced (-64): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/computed-properties.storyarc": 19400,  # 2026-11-21 repriced (-16): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/containers.storyarc": 20596,  # 2026-11-21 repriced (-16): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/daemons-and-timers.storyarc": 21632,  # 2026-11-21 repriced (-12): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/doors-and-locks.storyarc": 20056,  # 2026-11-21 repriced (-60): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/appearance.storyarc": 20436,  # 2026-11-21 repriced (+20): characters' paragraphs close the room description (the characters' pass)
+    "features/components.storyarc": 19672,  # 2026-11-21 repriced (-12): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "granules/whistle.storyarc": 19052,  # 2026-11-21 repriced (-12): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "granules/lighttopology.storyarc": 21192,  # 2026-11-21 repriced (-60): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/pathfinding.storyarc": 22016,  # 2026-11-21 repriced (-60): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/perform.storyarc": 19372,  # 2026-11-21 repriced (-12): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/grains.storyarc": 19160,  # 2026-11-21 repriced (-12): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/handlers.storyarc": 20572,  # 2026-11-21 repriced (-12): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/first-person.storyarc": 20044,  # 2026-11-21 repriced (-16): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/word-lists.storyarc": 19776,  # 2026-11-21 repriced (-60): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/grammar-bind.storyarc": 20676,  # 2026-11-21 repriced (-16): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/grammar.storyarc": 19476,  # 2026-11-21 repriced (-12): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/introproperty.storyarc": 21284,  # 2026-11-21 repriced (-16): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/kinds-and-inheritance.storyarc": 19368,  # 2026-11-21 repriced (-12): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/on-other.storyarc": 19248,  # 2026-11-21 repriced (-12): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/zcolor.storyarc": 19696,  # 2026-11-21 repriced (-12): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/text-styles.storyarc": 19496,  # 2026-11-21 repriced (-12): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/advanced-scope.storyarc": 22676,  # 2026-11-21 repriced (-16): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/computed-name.storyarc": 19384,  # 2026-11-21 repriced (-16): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/scoring.storyarc": 21660,  # 2026-11-21 repriced (-16): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/spans.storyarc": 19536,  # 2026-11-21 repriced (-12): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/vehicles.storyarc": 20916,  # 2026-11-21 repriced (-16): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/success.storyarc": 20232,  # 2026-11-21 repriced (-12): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/edible.storyarc": 19864,  # 2026-11-21 repriced (-12): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/text-slot.storyarc": 20408,  # 2026-11-21 repriced (-16): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "granules/carryweight.storyarc": 20616,  # 2026-11-21 repriced (-16): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "granules/ambience.storyarc": 21280,  # 2026-11-21 repriced (-12): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "granules/conversations.storyarc": 21244,  # 2026-11-21 repriced (-12): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "granules/extended-verbs.storyarc": 22964,  # 2026-11-21 repriced (-16): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "granules/infocom-interrogation.storyarc": 22660,  # 2026-11-21 repriced (+24): characters' paragraphs close the room description (the characters' pass)
+    "granules/quotes.storyarc": 19432,  # 2026-11-21 repriced (-12): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "granules/take-all.storyarc": 22620,  # 2026-11-21 repriced (-16): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "granules/plurals.storyarc": 20344,  # 2026-11-21 repriced (-12): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "granules/statusline.storyarc": 19404,  # 2026-11-21 repriced (-12): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "granules/verbose-exits.storyarc": 19344,  # 2026-11-21 repriced (-12): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 23824  # 2026-11-21 repriced (+16): paragraphs close the room description, scenery lines first
+CLOAK_Z8_CEILING = 23808  # 2026-11-21 repriced (-16): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.

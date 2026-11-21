@@ -447,6 +447,7 @@ movement), and `arcc --extract` shows every use of the rest.
 | `any_binds` | any_binds(): 1 when any grammar line binds an object into a slot (the spell-verb idiom), so the matcher's bound bookkeeping folds. |
 | `any_carry_limit` | any_carry_limit(): 1 when the game has a limit, fixed constant or declared carry_limit global (_any_carry). |
 | `any_carryweight` | any_carryweight(): 1 when the carryweight granule is summoned. |
+| `any_character_paragraphs` | any_character_paragraphs(): 1 when a character can own a room paragraph (_any_character_paragraphs), so the describer's characters' pass folds away otherwise. |
 | `any_commanding` | any_commanding(): 1 when the NPC engine is summoned at all. |
 | `any_compactrooms` | any_compactrooms(): 1 when `constant compact_rooms = 1` drops the blank line above a room title. |
 | `any_components` | any_components(): 1 when anything declares `component` (object or kind default), so the part-of hooks fold away otherwise. |

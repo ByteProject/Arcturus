@@ -3,11 +3,12 @@
 # Copyright (c) 2026, Stefan Vogt.
 # https://github.com/ByteProject/Arcturus
 
-"""The room description's order (docs/01 chapter 7; improvmonster's
-request, Stefan's ruling 2026-11-21): the description, then what sits on
-or in scenery holders, then the combined sentence of the plain items,
-then the paragraphs an object owns (appearance, unmoved intro) last. An
-existence object's paragraph closes the look in every room it is in."""
+"""The room description's order (docs/01 chapter 7; Stefan's ruling
+2026-11-21): the description, then what sits on or in scenery holders,
+then the paragraphs things own (appearance, unmoved intro), then the
+combined sentence of the plain items, and last the paragraphs characters
+own. A character without a paragraph stays in the sentence. An existence
+object's paragraph sits with the things' in every room it is in."""
 
 from arcturus import cosmos
 from arcturus.codegen import generate
@@ -52,11 +53,26 @@ def _order(text, *parts):
     return at == sorted(at)
 
 
-def test_scenery_then_sentence_then_paragraphs():
+def test_scenery_things_sentence_then_characters():
     look = _look(_run(DINER, ["look"]))
     assert _order(look, "A chrome diner.", "On the table you can see a plate.",
-                  "You can see a lamp here.", "The cook leans on the counter.",
-                  "A glass jar sits on the floor.")
+                  "A glass jar sits on the floor.", "You can see a lamp here.",
+                  "The cook leans on the counter.")
+
+
+def test_a_character_without_a_paragraph_stays_in_the_sentence():
+    src = DINER + 'thing waiter of character in diner\n    name "waiter"\n    words waiter\n'
+    look = _look(_run(src, ["look"]))
+    assert "You can see a lamp and a waiter here." in look
+    assert _order(look, "You can see a lamp and a waiter here.",
+                  "The cook leans on the counter.")
+
+
+def test_without_a_characters_paragraph_the_things_close_on_the_sentence():
+    src = DINER.replace('    appearance "The cook leans on the counter."\n', '')
+    look = _look(_run(src, ["look"]))
+    assert _order(look, "A glass jar sits on the floor.",
+                  "You can see a cook and a lamp here.")
 
 
 def test_a_taken_intro_joins_the_sentence():
@@ -67,15 +83,15 @@ def test_a_taken_intro_joins_the_sentence():
                   "The cook leans on the counter.")
 
 
-def test_without_scenery_contents_the_sentence_still_comes_first():
+def test_without_scenery_contents_the_things_come_first():
     src = DINER.replace("constant scenery_contents = true\n", "")
     look = _look(_run(src, ["look"]))
     assert "On the table" not in look
-    assert _order(look, "A chrome diner.", "You can see a lamp here.",
-                  "The cook leans on the counter.")
+    assert _order(look, "A chrome diner.", "A glass jar sits on the floor.",
+                  "You can see a lamp here.", "The cook leans on the counter.")
 
 
-def test_an_existence_objects_paragraph_closes_the_look_everywhere():
+def test_an_existence_objects_paragraph_sits_with_the_things_everywhere():
     src = DINER + (
         'thing radio in diner, yard\n    name "radio"\n    words radio\n'
         '    fixed\n    appearance "A radio crackles somewhere."\n'
@@ -85,6 +101,7 @@ def test_an_existence_objects_paragraph_closes_the_look_everywhere():
     out = _run(src, ["look", "east", "look"])
     diner = out.split(">look")[1].split(">")[0]
     yard = out.split(">look")[2].split(">")[0]
-    assert _order(diner, "You can see", "crate", "A radio crackles somewhere.")
-    assert _order(yard, "Gravel.", "You can see", "crate",
-                  "A radio crackles somewhere.")
+    assert _order(diner, "A glass jar", "A radio crackles somewhere.",
+                  "You can see", "crate", "The cook leans")
+    assert _order(yard, "Gravel.", "A radio crackles somewhere.",
+                  "You can see", "crate")

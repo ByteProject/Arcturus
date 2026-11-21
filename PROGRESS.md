@@ -13074,3 +13074,34 @@ game using both `in a, b` and `spans` still carried its 1-byte marker
 property on every existence object. STEFAN'S RULING: take it out. The
 intrinsic, its any_sight fold, and the synthesized marker are gone; the
 Spanish example saves 4 bytes.
+
+## The room description's final order (arcc 2.44.0, Cosmos 1.58.0,
+## 2026-11-21)
+
+Stefan was not settled on paragraphs-last: he likes the things below a
+room description listed from important to less important, and he
+doubted the adopter's claim that Dialog and Inform 6 print objects'
+paragraphs last. He had the established libraries read at the source
+before ruling. Inform 6 (6/11 and 6.12.x Locale) and Inform 7 (the
+locale activity) print the paragraphs before the "You can (also) see"
+listing, and 6.12 prints scenery holders' contents first; Dialog has no
+combined listing at all, one paragraph per object in tree order;
+PunyInform prints scenery contents after its listing, TADS 3 only the
+specialDescs an author moves there. The claim held for neither system;
+the adopter was right only about the scenery lines (a holder's contents
+told after an intro that refers to them).
+
+STEFAN'S RULING: the scenery lines move up, the things' paragraphs stay
+above the sentence, and characters close the look, a distinction of his
+own ("NPCs and highlighted items doesn't necessarily have to be the
+same"). A character with an appearance or unexpired intro prints its
+paragraph after the sentence; a character without one is merged into
+the sentence, "the way it should be". The order is: title and desc,
+scenery holders' lines, things' paragraphs, the combined sentence,
+characters' paragraphs.
+
+The things' pass counts the sentence again, and the characters' pass
+folds away in a game where no character owns a paragraph
+(any_character_paragraphs), so most games end SMALLER than before the
+day's first reorder (Cloak 23072 against 23076); the two examples with
+character paragraphs pay 32 and 36 bytes for the pass.

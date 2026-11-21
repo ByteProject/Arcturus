@@ -372,8 +372,10 @@ INTRINSICS = frozenset({
     "appearance_addr",
     "beyond_why_addr",
     # any_appearance is 1 when anything declares `appearance`, so the room
-    # describer's check folds away otherwise.
-    "any_appearance",
+    # describer's check folds away otherwise. any_character_paragraphs is
+    # 1 when a character (anything animate) can own a room paragraph, so
+    # the describer's closing characters' pass folds away otherwise.
+    "any_appearance", "any_character_paragraphs",
     # arc_image (B11): any_images is the compile-time flag (1 if any room has a
     # picture, else 0) that folds the whole image path away in an image-free
     # game; image_of reads a room's picture id (0 = none); pictures_available
@@ -2054,6 +2056,11 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # any_appearance(): 1 when anything declares `appearance`, so the
         # room describer's check folds away otherwise.
         _place(rt, Const(_any_prop(ctx.world, "appearance")), dest)
+    elif name == "any_character_paragraphs":
+        # any_character_paragraphs(): 1 when a character can own a room
+        # paragraph (_any_character_paragraphs), so the describer's
+        # characters' pass folds away otherwise.
+        _place(rt, Const(_any_character_paragraphs(ctx.world)), dest)
     elif name == "any_noiseprep":
         # any_noiseprep(): 1 when a noise word doubles as a grammar
         # preposition or particle (the du class), so the packs' combined
@@ -3448,6 +3455,26 @@ def _any_prop(world, prop: str) -> int:
     return 0
 
 
+def _any_character_paragraphs(world) -> int:
+    """1 when a character can own a room-description paragraph: an animate
+    object (by its kind or its own declaration) with an `appearance` or an
+    `intro`, its own or its kind's. A game that sets animate in play (`now
+    x is animate`) may animate anything, so there any declared appearance
+    or intro counts. With 0, the describer prints every paragraph in its
+    things' pass and its closing characters' pass folds away (docs/01
+    chapter 7, the room description's order)."""
+    from . import objects as _objects
+    paras = ("appearance", "intro")
+    if "animate" in getattr(world, "sets_attrs", ()):
+        return 1 if any(_any_prop(world, p) for p in paras) else 0
+    for obj in world.objects.values():
+        eff = _objects._effective_props(world, obj)
+        if "animate" in eff and _objects._bool_value(eff["animate"]) \
+                and any(p in eff for p in paras):
+            return 1
+    return 0
+
+
 def _any_concealed(world) -> int:
     """1 when anything can ever be concealed: declared on an object or kind,
     or set at runtime (`now x is concealed`) anywhere in the program. The
@@ -4822,6 +4849,9 @@ def _static_value(ctx, expr):
         return _any_components(ctx.world)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_appearance":
         return _any_prop(ctx.world, "appearance")
+    if isinstance(expr, ast.Call) and not expr.args \
+            and expr.name == "any_character_paragraphs":
+        return _any_character_paragraphs(ctx.world)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_noiseprep":
         return _any_noiseprep(ctx.world)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_firstperson":

@@ -1555,8 +1555,8 @@ The appearance check folds away in a game that sets none
 
 Every plain-listed object shares one combined sentence, the classic
 idiom: "You can see a MRE, a lantern and a backpack here.", never a
-line per item. Objects with their own `appearance` or unexpired `intro`
-keep their own paragraphs, which follow the sentence. The closed-openable qualifier and
+line per item. Things with their own `appearance` or unexpired `intro`
+keep their own paragraphs above it; characters' paragraphs follow it. The closed-openable qualifier and
 a holder's contents ride along inline per item ("a pine box (closed)").
 The sentence is the language layer's `list_room`, which speaks each
 item through `name_room_item`; a single object goes through `list_item`
@@ -1580,9 +1580,12 @@ nothing. Off by default and folded away entirely when the constant is
 absent (examples/features/scenery-contents.storyarc).
 
 A room description prints in this order: the title and `desc`, the
-scenery holders' paragraphs, the combined sentence, and last the
-paragraphs objects own. The fixed scene comes first and the things
-that matter most, characters and highlighted objects, close it:
+scenery holders' paragraphs, the paragraphs things own, the combined
+sentence, and last the paragraphs characters own. The fixed scene comes
+first, then the things that matter, then the rest, and the people in
+the room close it. A character (anything animate) without an
+`appearance` or unexpired `intro` is named in the combined sentence like
+any other item:
 
 ```
 Diner
@@ -1590,7 +1593,9 @@ A chrome diner.
 
 On the table you can see a plate with a hamburger on it.
 
-You can see a lamp here.
+A glass jar sits on the floor.
+
+You can see a lamp and a waiter here.
 
 The cook leans on the counter, watching you.
 ```
