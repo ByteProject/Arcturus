@@ -13037,3 +13037,19 @@ download. When everything fails, the error now teaches the one-time
 cure instead of printing bare SSL guts. Pinned by test (cert failure
 falls through to a real CA context; a refused connection never
 retries); live-verified against the real repo on this machine.
+
+## Paragraphs close the room description (arcc 2.43.0, Cosmos 1.57.0,
+## 2026-11-21)
+
+improvmonster asked for the paragraphs objects own (appearance, unmoved
+intro) to print last in a room description: they carry the characters
+and highlighted things, the most important lines in the room, and with
+the scenery holders' lines printing after them, a first-sight intro
+read before the furniture it sat on. I offered two orders: move only
+the scenery lines up, or his full ask. STEFAN'S RULING: option 2, his
+point is right. A room description now prints the title and desc, the
+scenery holders' lines, the combined "You can see" sentence, and the
+paragraphs last; existence objects follow the same order in every room
+they are in. One order, no switch back. The separate counting pass
+costs 12 bytes in most games (up to 28); the handbook's chapter 7
+passage gains the order with a worked transcript.

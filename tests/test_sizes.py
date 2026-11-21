@@ -216,74 +216,74 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 # chain); a held thing skips the probe, the floor-to-container shortcut
 # still moves takeable things in one command.
 CEILINGS = {
-    "features/yes-no.storyarc": 19304,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "features/press-any-key.storyarc": 20192,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "features/shiftable.storyarc": 19688,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "features/enhance-redefine.storyarc": 20048,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "features/consult-about.storyarc": 20204,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "features/session-verbs.storyarc": 19760,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "features/vary.storyarc": 21716,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "features/foresight.storyarc": 22140,  # 2026-11-15 repriced (+80): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "features/beyond.storyarc": 23020,  # 2026-11-15 repriced (+80): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "features/alter.storyarc": 21120,  # 2026-11-15 repriced (+80): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "features/catalogs.storyarc": 20308,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "features/matrix.storyarc": 20644,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "features/direction-grammar.storyarc": 19720,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "features/scenery-contents.storyarc": 20968,  # 2026-11-15 repriced (+80): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "features/prefer.storyarc": 19152,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "features/trigger.storyarc": 19972,  # 2026-11-15 repriced (+80): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "features/adjectives.storyarc": 20608,  # 2026-11-15 repriced (+80): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "granules/nautical.storyarc": 20196,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "granules/npcengine.storyarc": 22488,  # 2026-11-15 repriced (+92): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "granules/maniacswap.storyarc": 20684,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "beispiel-deutsch.storyarc": 29788,  # 2026-11-15 repriced (+60): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "brass-lantern.storyarc": 21096,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "cloak-of-darkness.storyarc": 23076,  # 2026-11-15 repriced (+80): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "ejemplo-espanol.storyarc": 26392,  # 2026-11-15 repriced (+60): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "features/computed-properties.storyarc": 19404,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "features/containers.storyarc": 20600,  # 2026-11-15 repriced (+80): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "features/daemons-and-timers.storyarc": 21632,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "features/doors-and-locks.storyarc": 20088,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "features/appearance.storyarc": 20404,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "features/components.storyarc": 19672,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "granules/whistle.storyarc": 19052,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "granules/lighttopology.storyarc": 21224,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "features/pathfinding.storyarc": 22044,  # 2026-11-21 repriced (+12): FIND names a thing offstage through core room_of and refuses
-    "features/perform.storyarc": 19372,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "features/grains.storyarc": 19160,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "features/handlers.storyarc": 20572,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "features/first-person.storyarc": 20048,  # 2026-11-15 repriced (+80): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "features/word-lists.storyarc": 19808,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "features/grammar-bind.storyarc": 20680,  # 2026-11-15 repriced (+80): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "features/grammar.storyarc": 19476,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "features/introproperty.storyarc": 21288,  # 2026-11-15 repriced (+80): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "features/kinds-and-inheritance.storyarc": 19368,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "features/on-other.storyarc": 19248,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "features/zcolor.storyarc": 19696,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "features/text-styles.storyarc": 19496,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "features/advanced-scope.storyarc": 22676,  # 2026-11-17 repriced (+64): the workshop speaks its own untouchable text
-    "features/computed-name.storyarc": 19388,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "features/scoring.storyarc": 21664,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "features/spans.storyarc": 19536,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "features/vehicles.storyarc": 20920,  # 2026-11-15 repriced (+80): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "features/success.storyarc": 20232,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "features/edible.storyarc": 19864,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "features/text-slot.storyarc": 20412,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "granules/carryweight.storyarc": 20620,  # 2026-11-15 repriced (+80): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "granules/ambience.storyarc": 21280,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "granules/conversations.storyarc": 21244,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "granules/extended-verbs.storyarc": 22968,  # 2026-11-15 repriced (+80): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "granules/infocom-interrogation.storyarc": 22624,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "granules/quotes.storyarc": 19432,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "granules/take-all.storyarc": 22624,  # 2026-11-15 repriced (+80): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "granules/plurals.storyarc": 20344,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "granules/statusline.storyarc": 19404,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "granules/verbose-exits.storyarc": 19344,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
+    "features/yes-no.storyarc": 19316,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "features/press-any-key.storyarc": 20204,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "features/shiftable.storyarc": 19700,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "features/enhance-redefine.storyarc": 20060,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "features/consult-about.storyarc": 20216,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "features/session-verbs.storyarc": 19772,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "features/vary.storyarc": 21728,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "features/foresight.storyarc": 22164,  # 2026-11-21 repriced (+24): paragraphs close the room description, scenery lines first
+    "features/beyond.storyarc": 23036,  # 2026-11-21 repriced (+16): paragraphs close the room description, scenery lines first
+    "features/alter.storyarc": 21132,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "features/catalogs.storyarc": 20320,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "features/matrix.storyarc": 20656,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "features/direction-grammar.storyarc": 19732,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "features/scenery-contents.storyarc": 20980,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "features/prefer.storyarc": 19164,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "features/trigger.storyarc": 19984,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "features/adjectives.storyarc": 20620,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "granules/nautical.storyarc": 20208,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "granules/npcengine.storyarc": 22512,  # 2026-11-21 repriced (+24): paragraphs close the room description, scenery lines first
+    "granules/maniacswap.storyarc": 20696,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "beispiel-deutsch.storyarc": 29812,  # 2026-11-21 repriced (+24): paragraphs close the room description, scenery lines first
+    "brass-lantern.storyarc": 21108,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "cloak-of-darkness.storyarc": 23088,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "ejemplo-espanol.storyarc": 26416,  # 2026-11-21 repriced (+24): paragraphs close the room description, scenery lines first
+    "features/computed-properties.storyarc": 19416,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "features/containers.storyarc": 20612,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "features/daemons-and-timers.storyarc": 21644,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "features/doors-and-locks.storyarc": 20112,  # 2026-11-21 repriced (+24): paragraphs close the room description, scenery lines first
+    "features/appearance.storyarc": 20416,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "features/components.storyarc": 19684,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "granules/whistle.storyarc": 19064,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "granules/lighttopology.storyarc": 21248,  # 2026-11-21 repriced (+24): paragraphs close the room description, scenery lines first
+    "features/pathfinding.storyarc": 22072,  # 2026-11-21 repriced (+28): paragraphs close the room description, scenery lines first
+    "features/perform.storyarc": 19384,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "features/grains.storyarc": 19172,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "features/handlers.storyarc": 20584,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "features/first-person.storyarc": 20060,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "features/word-lists.storyarc": 19832,  # 2026-11-21 repriced (+24): paragraphs close the room description, scenery lines first
+    "features/grammar-bind.storyarc": 20692,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "features/grammar.storyarc": 19488,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "features/introproperty.storyarc": 21300,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "features/kinds-and-inheritance.storyarc": 19380,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "features/on-other.storyarc": 19260,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "features/zcolor.storyarc": 19708,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "features/text-styles.storyarc": 19508,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "features/advanced-scope.storyarc": 22692,  # 2026-11-21 repriced (+16): paragraphs close the room description, scenery lines first
+    "features/computed-name.storyarc": 19400,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "features/scoring.storyarc": 21676,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "features/spans.storyarc": 19548,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "features/vehicles.storyarc": 20932,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "features/success.storyarc": 20244,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "features/edible.storyarc": 19876,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "features/text-slot.storyarc": 20424,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "granules/carryweight.storyarc": 20632,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "granules/ambience.storyarc": 21292,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "granules/conversations.storyarc": 21256,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "granules/extended-verbs.storyarc": 22980,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "granules/infocom-interrogation.storyarc": 22636,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "granules/quotes.storyarc": 19444,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "granules/take-all.storyarc": 22636,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "granules/plurals.storyarc": 20356,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "granules/statusline.storyarc": 19416,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
+    "granules/verbose-exits.storyarc": 19356,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 23808  # 2026-11-15 repriced (+80): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
+CLOAK_Z8_CEILING = 23824  # 2026-11-21 repriced (+16): paragraphs close the room description, scenery lines first
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.

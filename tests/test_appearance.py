@@ -105,10 +105,11 @@ def _vm_run(story, cmds):
 
 def test_silent_appearance_leaves_no_blank_line():
     story = _build(OPT_OUT)
-    # Off the camel: desc, one blank, the appearance, one blank, the shell.
+    # Off the camel: desc, one blank, the shell, one blank, the appearance
+    # (paragraphs close the look, Stefan's ruling 2026-11-21).
     out = _vm_run(story, ["look"]).split(">look")[-1]
     assert "chews his cud" in out
-    assert "Heat over the sand.\n\nA bored camel" in out
+    assert "Heat over the sand.\n\nYou can see a shell here.\n\nA bored camel" in out
     assert "\n\n\n" not in out
     # On the camel: the appearance opts out, so NO orphan blank line sits where
     # its paragraph would have been. The bug produced "sand.\n\n\nYou can see".

@@ -1556,7 +1556,7 @@ The appearance check folds away in a game that sets none
 Every plain-listed object shares one combined sentence, the classic
 idiom: "You can see a MRE, a lantern and a backpack here.", never a
 line per item. Objects with their own `appearance` or unexpired `intro`
-keep their own paragraphs above it. The closed-openable qualifier and
+keep their own paragraphs, which follow the sentence. The closed-openable qualifier and
 a holder's contents ride along inline per item ("a pine box (closed)").
 The sentence is the language layer's `list_room`, which speaks each
 item through `name_room_item`; a single object goes through `list_item`
@@ -1570,13 +1570,30 @@ by the same predicate.
 
 Scenery holders can join the room description too: with
 `constant scenery_contents = true` declared once, every scenery container or
-supporter in the room gets its own paragraph after the listing pass
+supporter in the room gets its own paragraph directly after the room's
+description
 ("On the counter you can see a bell and a candle."), worded by
 `scenery_holder_line` in the language layer, the knowledge model deciding
 per item exactly as in chapter 6: a closed opaque holder keeps its
 secret until first opened, then is remembered. Empty holders print
 nothing. Off by default and folded away entirely when the constant is
 absent (examples/features/scenery-contents.storyarc).
+
+A room description prints in this order: the title and `desc`, the
+scenery holders' paragraphs, the combined sentence, and last the
+paragraphs objects own. The fixed scene comes first and the things
+that matter most, characters and highlighted objects, close it:
+
+```
+Diner
+A chrome diner.
+
+On the table you can see a plate with a hamburger on it.
+
+You can see a lamp here.
+
+The cook leans on the counter, watching you.
+```
 
 ### Light and darkness
 
