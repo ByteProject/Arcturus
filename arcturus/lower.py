@@ -375,7 +375,9 @@ INTRINSICS = frozenset({
     # describer's check folds away otherwise. any_character_paragraphs is
     # 1 when a character (anything animate) can own a room paragraph, so
     # the describer's closing characters' pass folds away otherwise.
-    "any_appearance", "any_character_paragraphs",
+    # any_nested_intro is 1 when a thing with an intro starts inside a
+    # holder, so the describer's nested-intro walk folds away otherwise.
+    "any_appearance", "any_character_paragraphs", "any_nested_intro",
     # arc_image (B11): any_images is the compile-time flag (1 if any room has a
     # picture, else 0) that folds the whole image path away in an image-free
     # game; image_of reads a room's picture id (0 = none); pictures_available
@@ -2056,6 +2058,11 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # any_appearance(): 1 when anything declares `appearance`, so the
         # room describer's check folds away otherwise.
         _place(rt, Const(_any_prop(ctx.world, "appearance")), dest)
+    elif name == "any_nested_intro":
+        # any_nested_intro(): 1 when a thing with an intro starts inside a
+        # holder (_any_nested_intro), so the describer's nested-intro walk
+        # and the listings' check fold away otherwise.
+        _place(rt, Const(_any_nested_intro(ctx.world)), dest)
     elif name == "any_character_paragraphs":
         # any_character_paragraphs(): 1 when a character can own a room
         # paragraph (_any_character_paragraphs), so the describer's
@@ -3475,6 +3482,28 @@ def _any_character_paragraphs(world) -> int:
     return 0
 
 
+def _any_nested_intro(world) -> int:
+    """1 when a thing with an `intro` (its own or its kind's) starts inside
+    something other than a room: on a supporter, in a container, carried.
+    The room description then walks into the holders the player can see
+    into and lets such an intro speak its own paragraph, and the listings
+    leave the thing out while the room is told (docs/01 chapter 7). An
+    intro lasts only until the thing is first taken, and taking is the only
+    way into a holder that marks it moved, so the starting places decide;
+    a game whose intros all start in rooms keeps the walk folded away."""
+    from . import objects as _objects
+    for obj in world.objects.values():
+        loc = getattr(obj, "location", None)
+        if not loc:
+            continue
+        holder = world.objects.get(loc)
+        if holder is None or holder.category == "room":
+            continue
+        if "intro" in _objects._effective_props(world, obj):
+            return 1
+    return 0
+
+
 def _any_concealed(world) -> int:
     """1 when anything can ever be concealed: declared on an object or kind,
     or set at runtime (`now x is concealed`) anywhere in the program. The
@@ -4849,6 +4878,9 @@ def _static_value(ctx, expr):
         return _any_components(ctx.world)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_appearance":
         return _any_prop(ctx.world, "appearance")
+    if isinstance(expr, ast.Call) and not expr.args \
+            and expr.name == "any_nested_intro":
+        return _any_nested_intro(ctx.world)
     if isinstance(expr, ast.Call) and not expr.args \
             and expr.name == "any_character_paragraphs":
         return _any_character_paragraphs(ctx.world)

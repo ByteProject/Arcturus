@@ -28,7 +28,10 @@
 //                   here." Its intro is spent, because `moved` is set. The statue
 //                   and the reliquary, never taken, still show their intros.
 //   north           step into the vault; the status line follows you
-//   look            the tarnished key shows its intro here
+//   look            the tarnished key shows its intro here, and so does the
+//                   candle stub on the shelf: an intro speaks from inside a
+//                   holder too, here a scenery shelf the room's desc mentions
+//   examine shelf   the shelf still names the candle
 //   take key        take it, and its intro is likewise spent from now on
 //
 // The rule to take away: an `intro` is the FIRST-look prose for an object, and a
@@ -105,8 +108,25 @@ thing bone in reliquary
 
 room vault
     name "The Vault"
-    desc "A low barrel vault of cold brick. The chapel is back south."
+    desc "A low barrel vault of cold brick, a stone shelf set into one wall.
+          The chapel is back south."
     south chapel
+
+// An intro inside a holder: the shelf is scenery (the room's desc already
+// tells it), and the candle on it introduces itself in the room description
+// while untouched. The shelf's own listing leaves it out while the room is
+// told; EXAMINE SHELF still names it.
+thing shelf of supporter in vault
+    name "stone shelf"
+    words >stone, shelf
+    scenery
+    desc "A slab of stone mortared into the brick."
+
+thing candle in shelf
+    name "candle stub"
+    words >candle, stub, candle, tallow
+    desc "Tallow, burnt almost to nothing."
+    intro "A stub of tallow candle stands on the shelf, burnt almost to nothing."
 
 // One more takeable intro, in the second room, so the effect is clear after you
 // have already watched the letter change: prose while untouched, plain once taken.

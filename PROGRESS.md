@@ -13105,3 +13105,20 @@ folds away in a game where no character owns a paragraph
 (any_character_paragraphs), so most games end SMALLER than before the
 day's first reorder (Cloak 23072 against 23076); the two examples with
 character paragraphs pay 32 and 36 bytes for the pass.
+
+## An intro speaks from inside a holder (arcc 2.45.0, Cosmos 1.59.0,
+## 2026-11-21)
+
+Found while probing the room order: a thing with an intro on a scenery
+desk never appeared in the room description at all, and on an ordinary
+table it showed only inside the table's listing, its intro silent.
+Stefan's own style is the Infocom one (scenery mentioned in the room's
+desc, never listed), exactly where this bites. STEFAN'S RULING: fix it.
+A thing on a supporter or in a container the player can see into now
+speaks its unexpired intro after its holder's paragraph, and while the
+room is told the listings leave it out (the holder's contents, the
+scenery line, the second-level tail); EXAMINE and INVENTORY name it as
+before. The whole walk folds away in a game whose intros all start in
+rooms (any_nested_intro), so every shipped game but the intro example
+is byte-identical; a game using it pays 124 bytes. Appearance inside a
+holder, and a holder's own paragraph hiding its contents, stay open.

@@ -1359,6 +1359,12 @@ block describe_room()
     // the paragraphs characters own. A character without a paragraph of
     // its own stays in the sentence, as any plain item does.
     //
+    // While the room is told, a thing inside a holder with an unexpired
+    // intro speaks its own paragraph, so every listing leaves it out
+    // (told_apart, asked by the language layer's content_listable). Folds
+    // away in a game whose intros all start in rooms (any_nested_intro).
+    if any_nested_intro is 1
+        change room_telling to 1
     // The scenery pass (constant scenery_contents = 1, the PunyInform
     // OPTIONAL_PRINT_SCENERY_CONTENTS bridge): what sits on or in a
     // scenery holder gets its own paragraph ("On the table you can see
@@ -1384,6 +1390,8 @@ block describe_room()
                 own_paragraph(obj)
         else
             own_paragraph(obj)
+        if any_nested_intro is 1
+            nested_intros(obj)
         if room_plain(obj) is 1
             change listed to listed + 1
     if any_presence is 1
@@ -1397,6 +1405,35 @@ block describe_room()
         for each obj in here
             if obj is animate and obj is not player
                 own_paragraph(obj)
+    if any_nested_intro is 1
+        change room_telling to 0
+
+// Is the room description telling this thing in a paragraph of its own
+// from inside a holder (an unexpired intro)? The language layer's
+// content_listable asks, so the holder's listing, the scenery line, and
+// the tail "with ... on it" leave the thing out while the room is told;
+// EXAMINE and INVENTORY name it as always.
+global room_telling = 0
+
+block told_apart(x)
+    if room_telling is 1
+        if intro_addr(x) is not nothing and x is not moved
+            return 1
+    return 0
+
+// The intros inside a holder the player can see into (a supporter, an
+// open, clear, or lidless container), as far down as the eye goes: each
+// unexpired one speaks its paragraph, after its holder's, and the thing
+// is marked seen as a listing would.
+block nested_intros(holder)
+    if see_into(holder)
+        for each x in holder
+            if x is not hidden and x is not concealed
+                if intro_addr(x) is not nothing and x is not moved
+                    par
+                    say x.intro
+                    now x is seen
+                nested_intros(x)
 
 // The paragraph an object owns in a room description, if any: an
 // `appearance` ALWAYS (it never expires), otherwise an `intro` until the

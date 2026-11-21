@@ -945,6 +945,40 @@ thing statue in hall
     intro "A marble statue of a forgotten king dominates the room."
 ```
 
+An `intro` speaks from inside a holder too. A thing on a supporter, or in
+a container the player can see into (open, clear, or lidless), prints its
+unexpired `intro` as its own paragraph after its holder's, and while the
+room is described the holder's listing leaves it out; EXAMINE and
+INVENTORY still name it. A shut box keeps its things' intros until it is
+opened. This is how things on scenery introduce themselves when the
+room's `desc` already tells the furniture:
+
+```
+room study
+    name "Study"
+    desc "Books everywhere, and a heavy oak desk under the window."
+
+thing desk of supporter in study
+    name "desk"
+    words desk
+    scenery
+
+thing key in desk
+    name "brass key"
+    words key, >brass
+    intro "A brass key glints on the desk."
+```
+
+```
+Study
+Books everywhere, and a heavy oak desk under the window.
+
+A brass key glints on the desk.
+```
+
+Once the key is taken, it lists as any thing does. The walk costs nothing
+in a game whose intros all start in rooms.
+
 Containment is the Z-machine object tree: one parent per object, set with
 `in`, changed with `move`, read with `holds`, `in`, and `for each`. The tree
 is a separate axis from properties and is never reached with the dot.

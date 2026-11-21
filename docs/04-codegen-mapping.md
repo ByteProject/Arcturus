@@ -471,6 +471,7 @@ movement), and `arcc --extract` shows every use of the rest.
 | `any_maniacswap` | any_maniacswap(): 1 when maniacswap is summoned (the SELF pronoun and the swap's reach fold on it). |
 | `any_named` | any_named(): the compile-time named flag (1 or 0), so the article blocks fold their `named` check away in a game with no proper-named objects. |
 | `any_named_lower` | any_named_lower(): 1 when some named object carries a capitalized name twin (a lowercase literal name). |
+| `any_nested_intro` | any_nested_intro(): 1 when a thing with an intro starts inside a holder (_any_nested_intro), so the describer's nested-intro walk and the listings' check fold away otherwise. |
 | `any_noiseprep` | any_noiseprep(): 1 when a noise word doubles as a grammar preposition or particle (the du class), so the packs' combined flag arms fold away otherwise. |
 | `any_notify` | any_notify(): 1 when the game writes the notify global anywhere, so the loop's score-watch folds away otherwise (the coupled rule). |
 | `any_npcengine` | any_npcengine(): 1 only when a roster exists. |

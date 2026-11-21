@@ -1572,6 +1572,11 @@ block content_listable(holder, x)
         return 0
     if x is concealed
         return 0
+    // Told in a paragraph of its own while the room is described (an
+    // unexpired intro inside a holder); folds away without one.
+    if any_nested_intro is 1
+        if told_apart(x)
+            return 0
     // Too dim to see (summon.lighttopology); folds away unsummoned.
     if any_lighttopology is 1
         if light_dims(x) is 1
