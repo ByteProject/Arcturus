@@ -945,6 +945,31 @@ thing statue in hall
     intro "A marble statue of a forgotten king dominates the room."
 ```
 
+An `intro` can be a block, worded by state like a `desc block`. A holder
+that should tell its contents as they change composes them into its own
+prose with `name_contents`, and `listable_count` says whether there is
+anything to tell:
+
+```
+thing jar of container in study
+    name "glass jar"
+    words jar, >glass
+    open
+    fixed
+    intro block
+        if listable_count(self) is 0
+            say "A glass jar stands on the floor, empty."
+        else
+            show("A glass jar stands on the floor, holding ")
+            name_contents(self)
+            say "."
+```
+
+After PUT COIN IN JAR, the room reads "A glass jar stands on the floor,
+holding a coin." An intro ends the first time its thing is taken, so for
+a holder the player can carry, write the same block as an `appearance
+block`, which never ends.
+
 An `intro` speaks from inside a holder too. A thing on a supporter, or in
 a container the player can see into (open, clear, or lidless), prints its
 unexpired `intro` as its own paragraph after its holder's, and while the
@@ -1213,7 +1238,7 @@ feature, which declares a global boolean, not an object attribute.)
 | <a id="ix-words"></a>`words` | list | The vocabulary the parser matches: the object's nouns and adjectives, as equal entries. Typed but not printed. The significant words of the `name` count as vocabulary too, always, so a thing is never unreferable (see "Name words are vocabulary" below). |
 | <a id="ix-tag"></a>`tag` | text | A short state qualifier appended to the object in listings and the inventory: "a fluid canister (full)". Usually computed (`tag block`); print with `show`, not `say`, so it stays inline. The parentheses come from the listing. |
 | <a id="ix-plural"></a>`plural` | list | The words that name this object AS PART OF A GROUP (`plural coins` on each coin): "take coins" acts on every match in scope. Only with `summon.plurals` (chapter 22); ignored otherwise. |
-| <a id="ix-intro"></a>`intro` | text | An object's initial appearance in a room, shown as its own paragraph while the object is untouched (`moved` clear). |
+| <a id="ix-intro"></a>`intro` | text | An object's initial appearance in a room, shown as its own paragraph while the object is untouched (`moved` clear). A computed block (`intro block`) words it by state, the `appearance block` shape. |
 | <a id="ix-appearance"></a>`appearance` | text | The paragraph the object ALWAYS owns in a room description, replacing its listing line and never expiring ("The keeper is trimming the wick."): Inform's describe, Dialog's `(appearance $)`. A computed block (`appearance block`) words it by state; checked before `intro`; `hidden`/`concealed` still suppress. Costs nothing in a game that never sets one. |
 | <a id="ix-item-cap"></a>`item_cap` | number | The holder's ceiling: how many things fit in a container or on a supporter, nested contents counted, refusing past it with the right preposition (chapter 6). On the game block's level, `constant item_cap = N` is the player's carry limit instead. Unset means bottomless, deliberately. |
 | <a id="ix-untouchable"></a>`untouchable` | places | `untouchable from gallery, tower`, optionally followed by the text a refused touch speaks (`untouchable from gallery "It is ten feet below."`; the beyond line otherwise): in scope at each named place (a room, or an object meaning wherever it is in scope) and out of reach there, its contents with it as far as the eye sees in; an ordinary thing at home. Set at run time with `make_untouchable(x, place)`, cleared with `change x.untouchable to nothing` (chapter 7). |

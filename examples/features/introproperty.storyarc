@@ -20,13 +20,15 @@
 //   look            three intros, each its own paragraph:
 //                     - the marble statue (fixed set dressing, prose not a list)
 //                     - the sealed letter (a takeable thing, prose while untouched)
-//                     - the open reliquary (a container whose intro names what is
-//                       inside, so no separate "(contains ...)" line is generated)
+//                     - the open reliquary (a container whose intro block names
+//                       what is inside, so no separate "(contains ...)" line is
+//                       generated, and the prose follows what you take or add)
 //   take letter     you pick it up; the score ticks (a point for the letter)
 //   drop letter     put it back in the room
 //   look            the letter now reads plainly: "You can see a sealed letter
 //                   here." Its intro is spent, because `moved` is set. The statue
 //                   and the reliquary, never taken, still show their intros.
+//   take bone       the reliquary's intro block now tells an empty casket
 //   north           step into the vault; the status line follows you
 //   look            the tarnished key shows its intro here, and so does the
 //                   candle stub on the shelf: an intro speaks from inside a
@@ -89,16 +91,24 @@ thing letter in chapel
 
 // A CONTAINER's intro replaces the WHOLE generated line, including the
 // "(contains ...)" listing. Because this reliquary is fixed and open, its intro
-// shows for good, and it names the bone sliver itself, in prose, rather than
-// letting Cosmos append a separate contents list.
+// shows for good. It is an `intro block`, so it names what lies inside in its
+// own prose (name_contents), and the sentence follows whatever the player
+// takes out or puts in.
 thing reliquary of container in chapel
     name "gilt reliquary"
     words >gilt, >gilded, reliquary, casket, box
     fixed
     open
     desc "A small gilded casket, its glass lid propped open."
-    intro "An open reliquary of tarnished gilt rests on a plinth, and within it,
-           on a bed of faded silk, lies a yellowed sliver of bone."
+    intro block
+        if listable_count(self) is 0
+            say "An open reliquary of tarnished gilt rests on a plinth, its bed of
+                 faded silk empty."
+        else
+            show("An open reliquary of tarnished gilt rests on a plinth, and within
+                  it, on a bed of faded silk, lies ")
+            name_contents(self)
+            say "."
 
 thing bone in reliquary
     name "sliver of bone"

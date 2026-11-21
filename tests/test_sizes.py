@@ -256,7 +256,7 @@ CEILINGS = {
     "features/word-lists.storyarc": 19776,  # 2026-11-21 repriced (-60): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
     "features/grammar-bind.storyarc": 20676,  # 2026-11-21 repriced (-16): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
     "features/grammar.storyarc": 19476,  # 2026-11-21 repriced (-12): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
-    "features/introproperty.storyarc": 21680,  # 2026-11-21 repriced (+396): the vault gains a scenery shelf whose candle speaks its intro (an intro inside a holder)
+    "features/introproperty.storyarc": 21784,  # 2026-11-21 repriced (+104): the reliquary's intro block names its contents; the vault's shelf candle speaks its intro
     "features/kinds-and-inheritance.storyarc": 19368,  # 2026-11-21 repriced (-12): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
     "features/on-other.storyarc": 19248,  # 2026-11-21 repriced (-12): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
     "features/zcolor.storyarc": 19696,  # 2026-11-21 repriced (-12): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
