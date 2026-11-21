@@ -17,7 +17,7 @@
 //   frotz larder.z5
 //
 // TRY: x jar / take jar (its own why) / take hook (the block form,
-//      worded by state) / ask cook about jar (talk
+//      worded by state) / pull hook (and by action) / ask cook about jar (talk
 //      crosses the gap) / climb stool / take jar (the hand arrives) /
 //      get down / north / climb seat (the property points the OTHER way:
 //      now the PLAYER is beyond) / take horseshoe (the runtime why) /
@@ -45,8 +45,9 @@ room larder
 // the stool changes the geometry.
 // The refusal can carry its WHY (a field request): beyond "..."
 // speaks your line instead of the generic "beyond your reach", and
-// `beyond block` (the hook, below) words it by state, the desc-block
-// shape. A bare `beyond` keeps the pack's message.
+// `beyond block` (the hook, below) words it by state or by action
+// (`if action is pull`), the desc-block shape. A bare `beyond` keeps the
+// pack's message.
 thing jar in larder
     name "honey jar"
     words jar, >honey
@@ -73,11 +74,14 @@ thing hook in larder
     words hook, >brass
     desc "Screwed into the rafter, out of everything's reach."
     beyond block
-        show("The hook is rafter-high")
-        if player in stool
-            say ", and even the stool falls short."
+        if action is pull
+            say "To pull at the hook you would have to hang from the rafter first."
         else
-            say "."
+            show("The hook is rafter-high")
+            if player in stool
+                say ", and even the stool falls short."
+            else
+                say "."
 
 thing cook of character in larder
     name "cook"

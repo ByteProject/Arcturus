@@ -2694,7 +2694,7 @@ def _reads_action(body) -> bool:
 
 def _any_action_read(ctx) -> int:
     """The compile-time flag behind `action`: 1 when any handler, block, grain,
-    or topic body reads it. A block whose OWN parameter is named `action` (the
+    topic, or property-block body reads it. A block whose OWN parameter is named `action` (the
     dispatcher itself) is skipped, since the name means the parameter there."""
     w = ctx.world
     for blk in w.blocks.values():
@@ -2712,6 +2712,11 @@ def _any_action_read(ctx) -> int:
         bodies += [g.body for g in getattr(kind, "grains", [])]
         bodies += [t.body for t in getattr(kind, "topics", [])]
     bodies += [h.body for h in w.free_handlers]
+    # Property blocks too (`beyond block`, `desc block`, `appearance
+    # block`, `intro block`): the reach gate speaks a beyond block before
+    # any handler, and it may word the refusal by action.
+    for owner in list(w.objects.values()) + list(w.kinds.values()):
+        bodies += [getattr(p, "body", None) or [] for p in owner.props.values()]
     for body in bodies:
         if body and _reads_action(body):
             return 1

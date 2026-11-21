@@ -13122,3 +13122,18 @@ before. The whole walk folds away in a game whose intros all start in
 rooms (any_nested_intro), so every shipped game but the intro example
 is byte-identical; a game using it pays 124 bytes. Appearance inside a
 holder, and a holder's own paragraph hiding its contents, stay open.
+
+## action reads true at the gates (arcc 2.45.1, Cosmos 1.59.1,
+## 2026-11-21)
+
+An adopter asked whether the reach gate should run after an object's
+own handlers. It stays where Stefan put it on 2026-09-07 (touch is the
+default: the gate runs before any handler, so no handler can forget
+it); the object speaks through `beyond "why"` or a `beyond block`. While
+checking that answer, the beyond block turned out unable to word its
+refusal by action: the any_action_read fold never looked inside
+property blocks, and `action` was published only by the dispatcher,
+after the gates, so the block read nothing or the previous turn's
+action. STEFAN'S GO on the fix: the action is now published before the
+contracts (run_turn and the sweep), and the fold counts property blocks.
+The beyond example's hook words PULL apart from TAKE.

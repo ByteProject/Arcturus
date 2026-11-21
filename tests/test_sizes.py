@@ -224,7 +224,7 @@ CEILINGS = {
     "features/session-verbs.storyarc": 19760,  # 2026-11-21 repriced (-12): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
     "features/vary.storyarc": 21712,  # 2026-11-21 repriced (-16): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
     "features/foresight.storyarc": 22104,  # 2026-11-21 repriced (-64): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
-    "features/beyond.storyarc": 23020,  # 2026-11-21 repriced (-16): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
+    "features/beyond.storyarc": 23068,  # 2026-11-21 repriced (+48): the hook's beyond block words PULL by action (action is now published before the gates)
     "features/alter.storyarc": 21116,  # 2026-11-21 repriced (-16): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
     "features/catalogs.storyarc": 20308,  # 2026-11-21 repriced (-12): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph
     "features/matrix.storyarc": 20644,  # 2026-11-21 repriced (-12): the room description's final order: things' paragraphs count the sentence again; the characters' pass folds away without a character paragraph

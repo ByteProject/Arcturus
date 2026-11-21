@@ -93,6 +93,9 @@ block sweep_one(obj, act)
     // pack owns the punctuation.
     line_item_label(obj)
     change noun to obj
+    // `action` published before the contracts, as in run_turn.
+    if any_action_read is 1
+        change cur_action to act
     // The verb contract holds inside a sweep too (each item is a full turn);
     // take and drop declare nothing today, so this is one no-op call per item.
     let vetoed = 0
@@ -863,6 +866,12 @@ block run_turn(act)
         change r to here + here
         if is_lit is 0
             change r to r + 1
+    // `action` is published BEFORE the contracts, so a property block the
+    // gates speak through (a `beyond block` wording the refusal by action)
+    // reads this turn's action, not the last one's; the dispatcher
+    // publishes it again for the handlers. Folds away (any_action_read).
+    if any_action_read is 1
+        change cur_action to act
     // The verb contract, BEFORE dispatch (the verbs overhaul, phase 2): a
     // turn whose operands fail what the action requires is refused here,
     // library-owned, and no handler ever sees it. perform() does not pass
