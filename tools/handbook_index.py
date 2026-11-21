@@ -93,6 +93,7 @@ TERMS = [
     ("`item_cap`", ["row:item_cap"]),
     ("`article`", ["row:article"]),
     ("`indefinite`", ["row:indefinite"]),
+    ("`room_of`", ["p:`room_of(x)` is the room around a thing"]),
     ("`unseal_with`", ["row:unseal_with"]),
     ("`untouchable`", ["row:untouchable"]),
     ("`adjacent`", ["row:adjacent"]),

@@ -2141,8 +2141,14 @@ class Parser:
             relation = "in"
         elif self.accept_kw("of"):
             relation = "of"
+        elif self.cur.kind == T.NAME and self.cur.value == "within":
+            # `for each x within chest`: everything in or on the chest at any
+            # depth, the `within` relation as a loop (docs/01 chapter 9).
+            self.advance()
+            relation = "within"
         else:
-            raise self._error("expected 'in' or 'of' in a 'for each' loop")
+            raise self._error(
+                "expected 'in', 'within', or 'of' in a 'for each' loop")
         source = self.parse_expr()
         self.expect_newline()
         body = self.parse_stmt_block()

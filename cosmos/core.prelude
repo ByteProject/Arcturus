@@ -32,6 +32,22 @@ block within(obj, outer)
         change p to parent_of(p)
     return 0
 
+// The room around an object, however deeply it is nested (docs/01 chapter
+// 9): the coin in a purse in a bucket the player holds answers the room the
+// player stands in. A room answers for itself; an object offstage, or
+// backstage in scope, answers nothing. A story's own block of the same name
+// overrides this one; a game that never asks pays nothing (DCE).
+block room_of(obj)
+    let r = obj
+    while r is not nothing
+        if r is room
+            if any_scoperoom is 1
+                if r is scope_room
+                    return nothing
+            return r
+        change r to parent_of(r)
+    return nothing
+
 // Swap one object out of the world for another IN PLACE (docs/01 chapter 9):
 // `swap(bob, unconscious_bob)` moves the replacement into bob's exact spot,
 // removes bob, and HANDS OFF every live reference so the command bindings

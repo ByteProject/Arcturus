@@ -78,13 +78,6 @@ block match_any(rooms_first)
         change obj to obj + 1
     return best
 
-// The room an object ultimately sits in: walk up the tree to the top parent.
-block room_of(obj)
-    let r = obj
-    while r is not in nothing
-        change r to parent_of(r)
-    return r
-
 // Indent helper for the tree and scope listings.
 block indent(depth)
     let i = 0
@@ -202,7 +195,11 @@ on warp
     if noun is nothing
         say "Warp where?"
         stop
+    // core's room_of: the room around the thing, nothing when it is offstage
     let dest = room_of(noun)
+    if dest is nothing
+        say "That is nowhere in the world."
+        stop
     set_here(dest)
     move player to dest
     describe_room

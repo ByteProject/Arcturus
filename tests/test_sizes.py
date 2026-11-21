@@ -248,7 +248,7 @@ CEILINGS = {
     "features/components.storyarc": 19672,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
     "granules/whistle.storyarc": 19052,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
     "granules/lighttopology.storyarc": 21224,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
-    "features/pathfinding.storyarc": 22032,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
+    "features/pathfinding.storyarc": 22044,  # 2026-11-21 repriced (+12): FIND names a thing offstage through core room_of and refuses
     "features/perform.storyarc": 19372,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
     "features/grains.storyarc": 19160,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves
     "features/handlers.storyarc": 20572,  # 2026-11-15 repriced (+96): EXIT and GET OFF of two alike perches leave the one underfoot; bare GET OFF leaves

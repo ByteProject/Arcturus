@@ -2079,13 +2079,22 @@ while count > 0
     change count to count - 1
 ```
 
-`for each ... in / of ...`:
+`for each ... in / within / of ...`:
 
 ```
 for each item in player        // tree children of an object
+for each item within chest     // everything in or on the chest, at any depth
 for each mood in moods         // a catalog's entries, in order
 for each door of room          // every instance of a kind
 ```
+
+The `within` form visits every object for which `x within chest` holds:
+what lies in the chest, what stands on the tray inside it, what sits in
+the box on the tray, however deep, in object order. It is the tree's
+truth, so a shut box's contents are visited too; ask `if x is visible`
+when the player's eyes matter. `for each x within here` takes the whole
+room, the player and what they carry included. The body may move what it
+visits, or anything else, and the walk carries on.
 
 The `of` form walks every instance of the named kind, wherever it is in
 the world, in object order; the roots work too (`of thing`, `of room`).
@@ -2218,6 +2227,20 @@ carried coin is within whatever room the player stands in). Two edges:
 within its home room alone (scope is `visible`'s business, not the tree's),
 and a two-sided door seats in one place, so probing doors with `within` may
 surprise.
+
+<a id="ix-room-of"></a>`room_of(x)` is the room around a thing, however deeply it is nested: the
+coin in a purse in a bucket the player holds answers the room the player
+stands in. A room answers for itself, and an object offstage or backstage
+answers `nothing`:
+
+```
+on where
+    let r = room_of(noun)
+    if r is nothing
+        say "${The noun} is nowhere at all."
+    else
+        say "${The noun} is in ${r}."
+```
 
 Built-in references in handler and block bodies: `self` (the enclosing
 object), `player`, `here` (the current room), `noun` and `second` (the
@@ -7447,7 +7470,7 @@ stop_timer     := "stop" ( "after" | "every" ) expr "turns" "do" id
                 | "stop" "all" "timers"
 switch         := "switch" expr INDENT { case } [ else_case ] DEDENT
 case           := "case" value { "," value } INDENT { statement } DEDENT
-for            := "for" "each" id ( "in" | "of" ) expr
+for            := "for" "each" id ( "in" | "within" | "of" ) expr
                   INDENT { statement } DEDENT
 
 place          := id | expr "." id
@@ -7871,6 +7894,7 @@ links follow the text wherever it moves.
 - `restless`: [chapter 5, Standard attributes](#ix-restless)
 - `return`: [chapter 9](#ix-return)
 - `room`: [chapter 3, room](#room)
+- `room_of`: [chapter 9, Expressions and operators](#ix-room-of)
 
 **S**
 

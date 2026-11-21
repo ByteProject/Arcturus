@@ -2439,9 +2439,12 @@ def _static_etype(ctx, expr):
             return "object"
         if expr.ident in ctx.object_locals:
             return "object"
-    # The tree reads answer objects (or nothing, which prints as nothing).
+    # The tree reads answer objects (or nothing, which prints as nothing),
+    # and so does core's room_of, a block (docs/01 chapter 9).
     if isinstance(expr, ast.Call) and expr.name not in ctx.world.blocks \
             and expr.name in ("parent_of", "first_in", "next_in"):
+        return "object"
+    if isinstance(expr, ast.Call) and expr.name == "room_of":
         return "object"
     # A catalog or matrix as a VALUE: its name, or a property every
     # declaration of which holds one (improvmonster's owner, 2026-10-18:
@@ -4430,6 +4433,8 @@ def _is_object_expr(ctx, expr) -> bool:
     if isinstance(expr, ast.Call) and expr.name not in ctx.world.blocks \
             and expr.name in ("parent_of", "first_in", "next_in"):
         return True
+    if isinstance(expr, ast.Call) and expr.name == "room_of":
+        return True
     # An object-typed property read speaks its name too: `${x.best_key}`
     # printed the object's number (found beside EdwardianDuck's computed
     # property report, 2026-10-24), computed or literal alike.
@@ -5061,6 +5066,42 @@ def _for_each(rt, ctx, s: ast.ForEach):
         rt.jump(top)
         rt.label(done)
         ctx.free_temp(i)
+        return
+    if s.relation == "within":
+        # `for each x within chest`: every object for which `x within chest`
+        # holds, however deep (core's within walk), in object order. The
+        # sweep runs over object NUMBERS, not the tree's sibling chain, so
+        # the body may move x, or anything else, without derailing the walk
+        # (a moved-in object later in the numbering is met, one moved out
+        # is not). The source is read once, before the walk.
+        n = 0 if ctx.layout is None else len(ctx.layout.obj_number)
+        if n == 0:
+            return
+        xslot = ctx.resolve_var(s.var, s.line)
+        src = ctx.alloc_temp()
+        eval_expr(rt, ctx, s.source, Variable(src))
+        i = ctx.alloc_temp()
+        rt.op("store", Const(i), Const(1))
+        top = ctx.new_label()
+        nxt = ctx.new_label()
+        done = ctx.new_label()
+        rt.label(top)
+        rt.op("jg", Variable(i), Const(n), branch=(done, True))
+        rt.op("call_vs", RoutineRef("blk_within"), Variable(i), Variable(src),
+              store=Variable(STACK))
+        rt.op("jz", Variable(STACK), branch=(nxt, True))
+        rt.op("store", Const(xslot), Variable(i))
+        had = s.var in ctx.object_locals
+        ctx.object_locals.add(s.var)  # the loop var holds an object
+        compile_block(rt, ctx, s.body)
+        if not had:
+            ctx.object_locals.discard(s.var)
+        rt.label(nxt)
+        rt.op("inc", Const(i))
+        rt.jump(top)
+        rt.label(done)
+        ctx.free_temp(i)
+        ctx.free_temp(src)
         return
     if _is_list_source(ctx, s.source):
         raise LowerError("list iteration is not supported yet", s.line)

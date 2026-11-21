@@ -103,12 +103,6 @@ block seek_thing(lo, hi)
         change o to o + 1
     return best
 
-// The room ultimately around an object (a room answers for itself).
-block room_of(o)
-    while parent_of(o) is not nothing
-        change o to parent_of(o)
-    return o
-
 // ---------------------------------------------------------------------------
 // The walk.
 
@@ -197,7 +191,12 @@ on find_where
     if in_scope(t)
         msg_find_here(t)
         stop
+    // core's room_of: nothing for a thing offstage, which no walk reaches
     let r = room_of(t)
+    if r is nothing
+        msg_no_way_known
+        change refused to 1
+        stop
     if r is here
         msg_seek_near(t)
         stop
