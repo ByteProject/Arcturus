@@ -88,12 +88,10 @@ INTRINSICS = frozenset({
     # so `if any_spans() is 1` folds away and DCE drops the spans blocks when no
     # object spans (a static-if, see _if). The two multi-room forms (docs/01
     # chapter 3) split it: any_presence (the existence form, `in a, b`) gates
-    # the describer's presence pass, any_sight (the sight form, `spans`) the
-    # marker read; is_presence(obj) answers whether THIS object's array means
-    # existence, folding to a constant unless both forms are live in one game.
-    # presence_table is the existence objects' roster (count word, then
-    # object numbers), so the describer walks only them.
-    "any_presence", "any_sight", "is_presence", "presence_table",
+    # the describer's presence pass, and presence_table is the existence
+    # objects' roster (count word, then object numbers), so the describer
+    # walks only them and sight objects never enter its walks.
+    "any_presence", "presence_table",
     # The NPC engine (summon.npcengine, docs/01 chapter 22): npc_table is the
     # roster's base address (the __npcs__ global, 0 without a roster);
     # patrol/territory expose a character's route arrays exactly as spans;
@@ -1693,26 +1691,6 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # the describer's presence pass folds on it (docs/01 chapter 3).
         _place(rt, Const(_any_presence(ctx)), dest)
         return
-    elif name == "any_sight":
-        # any_sight(): 1 if any non-movable object uses the sight form
-        # (`spans`); with it 0, is_presence needs no marker read.
-        _place(rt, Const(_any_sight(ctx)), dest)
-        return
-    elif name == "is_presence":
-        # is_presence(obj): does this object's spans array mean EXISTENCE
-        # (present in each room) rather than sight (referable only)? Folds
-        # to a constant unless both forms are live in one game: no existence
-        # anywhere is 0; existence only is 1 (spans_here filters the rest);
-        # both live reads the sema-synthesized 1-byte presence marker.
-        if not _any_presence(ctx):
-            _place(rt, Const(0), dest)
-            return
-        if not _any_sight(ctx):
-            _place(rt, Const(1), dest)
-            return
-        op, t = _operand(rt, ctx, args[0])
-        rt.op("get_prop", op, Const(_presence_prop(ctx)), store=dest)
-        _free(ctx, t)
     elif name == "any_doors":
         # any_doors(): the compile-time door flag (1 or 0), consumed by the go
         # handler's static `if any_doors() is 1`; a plain constant otherwise.
@@ -2274,19 +2252,6 @@ def _any_spans(ctx) -> int:
 def _any_presence(ctx) -> int:
     """1 if any object uses the existence form (`in a, b`, docs/01 chapter 3)."""
     return 1 if (ctx.layout is not None and ctx.layout.has_presence) else 0
-
-
-def _any_sight(ctx) -> int:
-    """1 if any non-movable object uses the sight form (`spans`)."""
-    return 1 if (ctx.layout is not None and ctx.layout.has_sight) else 0
-
-
-def _presence_prop(ctx) -> int:
-    if ctx.layout is None or "presence" not in ctx.layout.prop_number:
-        raise LowerError(
-            "is_presence needs the presence marker property (synthesized only "
-            "when both multi-room forms are live in one game)")
-    return ctx.layout.prop_number["presence"]
 
 
 def _any_doors(ctx) -> int:
@@ -4731,8 +4696,6 @@ def _static_value(ctx, expr):
         return _any_spans(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_presence":
         return _any_presence(ctx)
-    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_sight":
-        return _any_sight(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_doors":
         return _any_doors(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_named":

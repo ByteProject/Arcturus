@@ -210,9 +210,9 @@ class Layout:
     # to fixed). has_sight: any non-movable object uses the sight form
     # (`spans`, referable only). has_spans is their union and gates the
     # shared scope machinery (any_spans folds to it); the describer's
-    # presence pass folds on any_presence, and the runtime marker read
-    # (is_presence) is needed only when BOTH are live in one game. A game
-    # using neither folds everything away and pays nothing.
+    # presence pass folds on any_presence and walks the existence roster
+    # (presence_table). A game using neither folds everything away and
+    # pays nothing.
     has_presence: bool = False
     has_sight: bool = False
     has_spans: bool = False

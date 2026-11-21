@@ -490,7 +490,6 @@ movement), and `arcc --extract` shows every use of the rest.
 | `any_scored` | any_scored(): 1 when anything declares `scored`, so the award hooks in take and go fold away in a scoreless game. |
 | `any_sealed` | any_sealed(): 1 if any openable container exists, so the sealed gate (a shut lid between the hand and the thing) folds away otherwise. |
 | `any_shiftable` | any_shiftable(): 1 if anything can be pushed between rooms, so the push-travel path folds away otherwise. |
-| `any_sight` | any_sight(): 1 if any non-movable object uses the sight form (`spans`); with it 0, is_presence needs no marker read. |
 | `any_spans` | any_spans(): the compile-time spans flag (1 or 0). |
 | `any_swap` | any_swap(): 1 when the maniacswap granule is summoned. |
 | `any_tables` | any_tables(): the compile-time positional-grammar flag (1 or 0), so the grammar-table matcher and the packs' tabled-verb branches fold away in a game whose verbs all fit the flag model. |
@@ -589,7 +588,6 @@ movement), and `arcc --extract` shows every use of the rest.
 | `first_in` | first_in(obj): the first object inside obj (get_child), nothing when empty: "is the box empty" without a loop (auraes's ask, 2026-09-23). |
 | `indefinite_addr` | indefinite_addr(obj): the address of the object's hand-set indefinite article, 0 if none. |
 | `intro_addr` | intro_addr(obj): the address of the object's intro property, 0 if none. |
-| `is_presence` | is_presence(obj): does this object's spans array mean EXISTENCE (present in each room) rather than sight (referable only)? Folds to a constant unless both forms are live in one game: no existence anywhere is 0; existence only is 1 (spans_here filters the rest); both live reads the sema-synthesized 1-byte presence marker. |
 | `name_cap_addr` | name_cap_addr(obj): the address of a lowercase named thing's capitalized name twin, 0 if none. |
 | `next_in` | next_in(obj): the next object beside obj in its holder (get_sibling), nothing at the end. |
 | `object_count` | object_count(): how many objects the program declares (1..N), so the debug granule can scan them all by number (the parser reaches only those in scope). |

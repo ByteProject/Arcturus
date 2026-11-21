@@ -13066,3 +13066,11 @@ existence objects (a count word, then their numbers) and the describer's
 presence walks read it instead of the whole world. The same LOOK went
 from 5029 opcodes before the reorder to 1258 after it; a game without
 the form is untouched, and games with it grew 4 bytes.
+
+## is_presence retired (arcc 2.43.2, 2026-11-21)
+
+With the roster in place, nothing called is_presence any more, yet a
+game using both `in a, b` and `spans` still carried its 1-byte marker
+property on every existence object. STEFAN'S RULING: take it out. The
+intrinsic, its any_sight fold, and the synthesized marker are gone; the
+Spanish example saves 4 bytes.

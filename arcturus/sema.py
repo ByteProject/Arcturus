@@ -1334,18 +1334,10 @@ class Analyzer:
         form is for FIXED objects only. Scenery is redirected to `spans`
         (the sight form, its tool), a movable object is refused outright
         (never the old silent drop), and the targets must be named rooms,
-        never kinds (a kind target is the sight form's). When both forms
-        are live in one game, each existence object gets a synthesized
-        1-byte `presence` marker so the describer can tell them apart at
-        run time; a game using one form (or none) allocates no marker and
-        keeps its property numbering untouched."""
+        never kinds (a kind target is the sight form's). The describer finds the existence objects through the compiler's
+        roster (presence_table), so no per-object marker is needed."""
         w = self.world
-        any_presence = False
-        any_sight = False
         for obj in w.objects.values():
-            if obj.spans and (self._attr_truthy(obj, "fixed")
-                              or self._attr_truthy(obj, "scenery")):
-                any_sight = True
             if not obj.presence:
                 continue
             if obj.category == "room":
@@ -1384,14 +1376,6 @@ class Analyzer:
                     f"movable: an object can exist in several rooms only "
                     f"when `fixed` (a carried object's scope follows it)",
                     obj.line)
-            any_presence = True
-        if any_presence and any_sight:
-            self._unify_property("presence", prelude.T_NUMBER, 0)
-            for obj in w.objects.values():
-                if obj.presence:
-                    obj.props["presence"] = ast.PropertyDecl(
-                        "presence", ast.PROP_VALUE,
-                        values=[ast.Number(1, obj.line)], line=obj.line)
 
     def _check_npcengine(self) -> None:
         """The NPC engine's declaration surface (summon.npcengine, docs/01
@@ -3145,9 +3129,8 @@ class Analyzer:
         std = set(self.env.properties)
         # tag rides props but is not one; trigger is synthesized from the #
         # marker and read through its intrinsic (trigger_addr), never as a
-        # property, so the unread-lint has no business with either. presence
-        # is the existence-form marker, synthesized and intrinsic-read too.
-        skip = {"tag", "trigger", "adjective", "presence"}
+        # property, so the unread-lint has no business with either.
+        skip = {"tag", "trigger", "adjective"}
         # item_cap is read by the container ceiling through the
         # container_cap intrinsic the moment any object declares it, and
         # weight by the carryweight granule through weight_of: intrinsic

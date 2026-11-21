@@ -239,7 +239,7 @@ CEILINGS = {
     "beispiel-deutsch.storyarc": 29816,  # 2026-11-21 repriced (+4): the presence walks read the compiler's roster of existence objects, not the whole world
     "brass-lantern.storyarc": 21108,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
     "cloak-of-darkness.storyarc": 23088,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
-    "ejemplo-espanol.storyarc": 26420,  # 2026-11-21 repriced (+4): the presence walks read the compiler's roster of existence objects, not the whole world
+    "ejemplo-espanol.storyarc": 26416,  # 2026-11-21 repriced (-4): the presence marker property is gone (is_presence retired)
     "features/computed-properties.storyarc": 19416,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
     "features/containers.storyarc": 20612,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first
     "features/daemons-and-timers.storyarc": 21644,  # 2026-11-21 repriced (+12): paragraphs close the room description, scenery lines first

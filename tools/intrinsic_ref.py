@@ -98,7 +98,7 @@ FAMILIES = [
                                "words_addr", "words_count", "position"}),
     ("The object tree and properties", lambda n: n.endswith("_addr") or n.endswith("_count")
         or n in {"parent_of", "first_in", "next_in", "within", "object_count",
-                 "is_presence", "presence_table", "item_count", "weight_of", "carry_weight",
+                 "presence_table", "item_count", "weight_of", "carry_weight",
                  "carry_limit", "container_cap", "spans_match"}),
     ("Dispatch and the turn", lambda n: n.startswith("ev_") or n.startswith("run_")
         or n.startswith("tick") or n in {
